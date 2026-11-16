@@ -46,10 +46,21 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/) dan
   - Wizard kenaikan kelas menampilkan panel peringatan **Belum bebas tanggungan** berisi daftar siswa yang akan ditolak sebelum tombol proses ditekan.
 - **Cetak slip honorarium PDF.** `/keuangan/honorarium/{periode}/slip` (permission `payrolls.view`) menghasilkan PDF A4 berisi satu slip per penerima (bruto, potongan, neto, rekening, kolom tanda tangan) diikuti rekap total dan terbilang; periode tanpa penerima mengembalikan 404. Tombol **Cetak Slip** tersedia pada halaman detail periode.
 - 11 tes baru: `GuardianPortalTest` (+3 kode bayar portal), `StudentPromotionTest` (+5 gerbang bebas tanggungan), `PayrollTest` (+3 slip PDF). Total suite **463 test / 1349 assertion** lulus.
+- **Halaman Pengaturan Pembayaran (`/pengaturan/pembayaran`, permission `settings.view`).** Konsol status penyedia + pengaturan operasional gateway:
+  - `App\Livewire\Settings\GatewayIndex` menampilkan status tiap penyedia (siap / kredensial kurang / nonaktif, mode sandbox-produksi, kanal, URL webhook dengan tombol salin) dan keterisian kredensial (terisi/kosong, **tanpa nilai**).
+  - Formulir mengelola empat nilai yang aman diubah pengguna: penyedia bawaan, masa berlaku kode bayar (1-24 jam), nominal unik rekonsiliasi, dan toleransi tanggal rekonsiliasi (1-90 hari). Nominal unik tersimpan langsung saat sakelar diubah.
+  - `App\Support\SettingsConfigOverlay::applyPaymentGateway()` menjembatani `app_settings` ke `config('payment_gateway.*')` pada `AppServiceProvider::boot()`, sehingga pengaturan berlaku tanpa mengubah `.env`. Baris yang belum ada tetap memakai nilai environment, dan kegagalan baca (tabel belum dimigrasi) diabaikan.
+  - Empat kunci baru pada `AppSettingSeeder` grup `payment`: `payment_gateway_default`, `payment_gateway_expiry_hours`, `reconciliation_unique_amount_enabled`, `reconciliation_date_tolerance_days`.
+  - Kredensial gateway tetap hanya dari `.env`; driver `fake` ditampilkan dengan peringatan merah dan hanya dapat dipilih bila `PAYMENT_GATEWAY_FAKE_ENABLED=true`.
+  - Menu navigasi Pengaturan â†’ Pengaturan Pembayaran (ikon `credit-card`).
+- 11 tes baru: `SettingsManagementTest` (+10 halaman/validasi/overlay), `GatewayDriverTest` (+1 fallback `callback_url` Tripay). Total suite **474 test / 1394 assertion** lulus.
 
 ### Diubah
 - `Payment` mendapat relasi `intent()` dan `reconciliationLines()`; `Student` mendapat `studentBills()`; `StudentBill` mendapat `paymentIntents()`; `StaffProfile` mendapat `payrollItems()`; `Unit` mendapat kolom & cast gateway.
 - `bootstrap/app.php` mengecualikan `webhook/pembayaran/*` dari verifikasi CSRF.
+
+### Diperbaiki
+- **Tripay gagal menerbitkan VA/QRIS saat `TRIPAY_CALLBACK_URL` kosong.** `TripayGateway` memanggil nama route `webhooks.payment.tripay` yang tidak pernah didaftarkan dan melempar `RouteNotFoundException`. Sekarang memakai `route('webhooks.payment', ['provider' => 'tripay'])` sehingga `callback_url` jatuh ke URL webhook aplikasi.
 
 ### Ditambahkan (sebelumnya)
 - **Pemisahan portal siswa dan portal orang tua/wali.** Sebelumnya satu halaman (/portal/siswa) melayani siswa sekaligus orang tua. Sekarang ada dua portal terpisah dengan autentikasi masing-masing:

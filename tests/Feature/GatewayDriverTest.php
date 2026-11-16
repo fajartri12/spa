@@ -120,6 +120,30 @@ class GatewayDriverTest extends TestCase
         $this->assertFalse(app(TripayGateway::class)->isConfigured());
     }
 
+    public function test_tripay_falls_back_to_webhook_route_when_callback_blank(): void
+    {
+        $this->configureTripay();
+        Config::set('payment_gateway.providers.tripay.callback_url', null);
+
+        Http::fake([
+            'tripay.test/*' => Http::response([
+                'success' => true,
+                'data' => [
+                    'reference' => 'T0001-REF-1',
+                    'pay_code' => '1234567890',
+                    'pay_url' => 'https://tripay.test/pay/1',
+                    'expired_time' => now()->addDay()->getTimestamp(),
+                    'fee_customer' => 0,
+                ],
+            ]),
+        ]);
+
+        app(TripayGateway::class)->createCharge($this->intent(GatewayProvider::Tripay, 'BRIVA'));
+
+        Http::assertSent(fn (Request $request): bool => $request->data()['callback_url']
+            === route('webhooks.payment', ['provider' => 'tripay']));
+    }
+
     public function test_tripay_verifies_callback_signature(): void
     {
         $this->configureTripay();

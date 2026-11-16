@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Support\SettingsConfigOverlay;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -35,6 +36,11 @@ class AppServiceProvider extends ServiceProvider
         Livewire::addPersistentMiddleware([
             EnsureUserIsActive::class,
         ]);
+
+        // Sebagian pengaturan pembayaran disimpan di database agar dapat diubah
+        // lewat antarmuka. Penimpaan dilakukan setelah konfigurasi environment
+        // dimuat, dan aman ketika tabel belum tersedia (mis. saat migrasi).
+        SettingsConfigOverlay::applyPaymentGateway();
     }
 
     private function guardProductionConfiguration(): void

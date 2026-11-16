@@ -174,6 +174,7 @@ final class Navigation
                 'children' => [
                     ['label' => 'Pengaturan Umum', 'route' => 'settings.index', 'icon' => 'settings', 'permission' => 'settings.view'],
                     ['label' => 'Pengaturan Sistem', 'route' => 'settings.system', 'icon' => 'sliders-horizontal', 'permission' => 'settings.view'],
+                    ['label' => 'Pengaturan Pembayaran', 'route' => 'settings.gateway', 'icon' => 'credit-card', 'permission' => 'settings.view'],
                     ['label' => 'Pengaturan Notifikasi', 'route' => 'settings.notifications', 'icon' => 'bell', 'permission' => 'settings.view'],
                     ['label' => 'Pengaturan Tampilan', 'route' => 'settings.appearance', 'icon' => 'palette', 'permission' => 'settings.view'],
                     ['label' => 'Pengguna', 'route' => 'users.index', 'icon' => 'user-cog', 'permission' => 'users.view'],

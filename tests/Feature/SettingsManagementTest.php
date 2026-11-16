@@ -7,11 +7,15 @@ namespace Tests\Feature;
 use App\Enums\PermissionName;
 use App\Enums\RoleName;
 use App\Enums\UserStatus;
+use App\Livewire\Settings\GatewayIndex;
 use App\Models\AppSetting;
 use App\Models\NotificationTemplate;
 use App\Models\User;
 use App\Livewire\Settings\NotificationTemplateIndex;
+use App\Support\SettingsConfigOverlay;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -348,5 +352,175 @@ class SettingsManagementTest extends TestCase
             ->set('theme_primary_color', 'not-a-color')
             ->call('save')
             ->assertHasErrors(['theme_primary_color']);
+    }
+
+    public function test_gateway_settings_page_is_forbidden_without_permission(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::PaymentOfficer->value);
+
+        $this->actingAs($user)->get(route('settings.gateway'))->assertForbidden();
+    }
+
+    public function test_super_admin_can_view_gateway_settings_page(): void
+    {
+        Config::set('payment_gateway.providers.tripay.api_key', 'tripay-rahasia-api-key');
+        Config::set('payment_gateway.providers.tripay.enabled', true);
+
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::SuperAdministrator->value);
+
+        $this->actingAs($user)->get(route('settings.gateway'))
+            ->assertOk()
+            ->assertSee('Pengaturan Pembayaran')
+            ->assertSee('Tripay')
+            ->assertSee('Midtrans')
+            ->assertSee('Simulator (Pengujian)')
+            ->assertSee(route('webhooks.payment', ['provider' => 'tripay']))
+            ->assertDontSee('tripay-rahasia-api-key');
+    }
+
+    public function test_gateway_settings_page_hides_simulator_from_default_options(): void
+    {
+        Config::set('payment_gateway.providers.fake.enabled', false);
+
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::SuperAdministrator->value);
+
+        Livewire::actingAs($user)
+            ->test(GatewayIndex::class)
+            ->assertViewHas('providerOptions', fn (array $options): bool => ! array_key_exists('fake', $options));
+    }
+
+    public function test_super_admin_can_update_gateway_settings(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::SuperAdministrator->value);
+
+        Livewire::actingAs($user)
+            ->test(GatewayIndex::class)
+            ->set('payment_gateway_default', 'tripay')
+            ->set('payment_gateway_expiry_hours', 12)
+            ->set('reconciliation_unique_amount_enabled', true)
+            ->set('reconciliation_date_tolerance_days', 14)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('tripay', AppSetting::get('payment_gateway_default'));
+        $this->assertSame('12', AppSetting::get('payment_gateway_expiry_hours'));
+        $this->assertSame('1', AppSetting::get('reconciliation_unique_amount_enabled'));
+        $this->assertSame('14', AppSetting::get('reconciliation_date_tolerance_days'));
+        $this->assertDatabaseHas('activity_logs', ['event' => 'settings.updated']);
+    }
+
+    public function test_gateway_settings_allows_clearing_default_provider(): void
+    {
+        AppSetting::set('payment_gateway_default', 'tripay');
+
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::SuperAdministrator->value);
+
+        Livewire::actingAs($user)
+            ->test(GatewayIndex::class)
+            ->set('payment_gateway_default', '')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('', AppSetting::get('payment_gateway_default'));
+    }
+
+    public function test_gateway_settings_validation_rejects_out_of_range_values(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::SuperAdministrator->value);
+
+        Livewire::actingAs($user)
+            ->test(GatewayIndex::class)
+            ->set('payment_gateway_expiry_hours', 0)
+            ->set('reconciliation_date_tolerance_days', 91)
+            ->call('save')
+            ->assertHasErrors(['payment_gateway_expiry_hours', 'reconciliation_date_tolerance_days']);
+
+        Livewire::actingAs($user)
+            ->test(GatewayIndex::class)
+            ->set('payment_gateway_expiry_hours', 25)
+            ->set('reconciliation_date_tolerance_days', 0)
+            ->call('save')
+            ->assertHasErrors(['payment_gateway_expiry_hours', 'reconciliation_date_tolerance_days']);
+    }
+
+    public function test_gateway_settings_rejects_unknown_or_disabled_provider(): void
+    {
+        Config::set('payment_gateway.providers.fake.enabled', false);
+
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::SuperAdministrator->value);
+
+        Livewire::actingAs($user)
+            ->test(GatewayIndex::class)
+            ->set('payment_gateway_default', 'fake')
+            ->call('save')
+            ->assertHasErrors(['payment_gateway_default']);
+
+        Livewire::actingAs($user)
+            ->test(GatewayIndex::class)
+            ->set('payment_gateway_default', 'tidak-dikenal')
+            ->call('save')
+            ->assertHasErrors(['payment_gateway_default']);
+    }
+
+    public function test_toggling_unique_amount_saves_immediately(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::SuperAdministrator->value);
+
+        Livewire::actingAs($user)
+            ->test(GatewayIndex::class)
+            ->assertSet('reconciliation_unique_amount_enabled', false)
+            ->set('reconciliation_unique_amount_enabled', true)
+            ->assertHasNoErrors();
+
+        $this->assertSame('1', AppSetting::get('reconciliation_unique_amount_enabled'));
+        $this->assertDatabaseHas('activity_logs', ['event' => 'settings.updated']);
+    }
+
+    public function test_settings_overlay_applies_gateway_values_to_config(): void
+    {
+        Config::set('payment_gateway.default', '');
+        Config::set('payment_gateway.expiry_hours', 24);
+        Config::set('payment_gateway.reconciliation.unique_amount_enabled', false);
+        Config::set('payment_gateway.reconciliation.date_tolerance_days', 7);
+
+        AppSetting::set('payment_gateway_default', 'midtrans');
+        AppSetting::set('payment_gateway_expiry_hours', '6');
+        AppSetting::set('reconciliation_unique_amount_enabled', '1');
+        AppSetting::set('reconciliation_date_tolerance_days', '21');
+
+        SettingsConfigOverlay::applyPaymentGateway();
+
+        $this->assertSame('midtrans', config('payment_gateway.default'));
+        $this->assertSame(6, config('payment_gateway.expiry_hours'));
+        $this->assertTrue(config('payment_gateway.reconciliation.unique_amount_enabled'));
+        $this->assertSame(21, config('payment_gateway.reconciliation.date_tolerance_days'));
+    }
+
+    public function test_settings_overlay_ignores_missing_rows(): void
+    {
+        AppSetting::query()->whereIn('key', [
+            'payment_gateway_default',
+            'payment_gateway_expiry_hours',
+            'reconciliation_unique_amount_enabled',
+            'reconciliation_date_tolerance_days',
+        ])->delete();
+        Cache::forget(AppSetting::CACHE_KEY);
+
+        Config::set('payment_gateway.expiry_hours', 24);
+        Config::set('payment_gateway.reconciliation.unique_amount_enabled', false);
+
+        SettingsConfigOverlay::applyPaymentGateway();
+
+        $this->assertSame(24, config('payment_gateway.expiry_hours'));
+        $this->assertFalse(config('payment_gateway.reconciliation.unique_amount_enabled'));
+        $this->assertSame('', AppSetting::get('payment_gateway_default', ''));
     }
 }

@@ -77,7 +77,7 @@ final class TripayGateway implements PaymentGateway
                     'quantity' => 1,
                 ],
             ],
-            'callback_url' => $config['callback_url'] ?: route('webhooks.payment.tripay'),
+            'callback_url' => $config['callback_url'] ?: route('webhooks.payment', ['provider' => 'tripay']),
             'return_url' => $options['return_url'] ?? url('/portal/siswa'),
             'expired_time' => now()->addHours($expiryHours)->getTimestamp(),
             'signature' => hash_hmac(

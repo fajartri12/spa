@@ -227,6 +227,27 @@ Penyedia per unit diatur pada `units.payment_provider`,
 `units.payment_channel`, dan `units.payment_gateway_enabled`. Bila unit belum
 diatur, aplikasi memakai `PAYMENT_GATEWAY_DEFAULT`.
 
+#### Halaman Pengaturan Pembayaran
+
+`/pengaturan/pembayaran` (`settings.gateway`, izin `settings.view`) menampilkan:
+
+| Bagian | Sifat |
+|---|---|
+| Status tiap penyedia: siap / kredensial kurang / nonaktif, mode sandbox-produksi, kanal, URL webhook | Baca saja |
+| Keterisian kredensial (terisi / kosong, tanpa nilai) | Baca saja |
+| Penyedia bawaan, masa berlaku kode bayar, nominal unik, toleransi tanggal rekonsiliasi | Dapat diubah |
+
+Empat nilai terakhir disimpan di tabel `app_settings` dan ditimpa ke konfigurasi
+oleh `App\Support\SettingsConfigOverlay::applyPaymentGateway()` pada
+`AppServiceProvider::boot()`. Kredensial **tidak pernah** masuk database maupun
+formulir: halaman hanya melaporkan apakah variabel `.env` sudah diisi
+(AGENTS.MD bagian 9). Bila baris `app_settings` belum ada, nilai `.env` tetap
+dipakai apa adanya.
+
+Driver `fake` selalu ditampilkan pada halaman status beserta peringatan merah,
+tetapi hanya dapat dipilih sebagai penyedia bawaan bila
+`PAYMENT_GATEWAY_FAKE_ENABLED=true`.
+
 ### 4.5 Catatan Verifikasi Sandbox
 
 Skema signature mengikuti dokumentasi resmi masing-masing penyedia:

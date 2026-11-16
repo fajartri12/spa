@@ -28,6 +28,10 @@ class AppSettingSeeder extends Seeder
             ['group' => 'system', 'key' => 'feature_student_savings_enabled', 'value' => '1', 'label' => 'Fitur Tabungan Siswa'],
             ['group' => 'payment', 'key' => 'payment_prefix', 'value' => 'TRX', 'label' => 'Prefix Nomor Transaksi'],
             ['group' => 'payment', 'key' => 'bill_prefix', 'value' => 'TGH', 'label' => 'Prefix Nomor Tagihan'],
+            ['group' => 'payment', 'key' => 'payment_gateway_default', 'value' => '', 'label' => 'Penyedia Pembayaran Bawaan'],
+            ['group' => 'payment', 'key' => 'payment_gateway_expiry_hours', 'value' => '24', 'label' => 'Masa Berlaku Kode Bayar (jam)', 'type' => 'integer'],
+            ['group' => 'payment', 'key' => 'reconciliation_unique_amount_enabled', 'value' => '0', 'label' => 'Nominal Unik Rekonsiliasi', 'type' => 'boolean'],
+            ['group' => 'payment', 'key' => 'reconciliation_date_tolerance_days', 'value' => '7', 'label' => 'Toleransi Tanggal Rekonsiliasi (hari)', 'type' => 'integer'],
         ];
 
         foreach ($settings as $setting) {

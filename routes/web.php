@@ -65,6 +65,7 @@ use App\Livewire\Profile\ProfileEdit;
 use App\Livewire\Settings\RoleIndex;
 use App\Livewire\Settings\SettingIndex;
 use App\Livewire\Settings\AppearanceIndex;
+use App\Livewire\Settings\GatewayIndex;
 use App\Livewire\Settings\NotificationTemplateIndex;
 use App\Livewire\Settings\SystemIndex;
 use App\Livewire\Settings\UserIndex;
@@ -236,6 +237,10 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/pengaturan/notifikasi', NotificationTemplateIndex::class)
         ->middleware('permission:settings.view')
         ->name('settings.notifications');
+
+    Route::get('/pengaturan/pembayaran', GatewayIndex::class)
+        ->middleware('permission:settings.view')
+        ->name('settings.gateway');
 
     Route::get('/pengaturan/tampilan', AppearanceIndex::class)
         ->middleware('permission:settings.view')

@@ -4,7 +4,7 @@ Rencana implementasi mengikuti urutan fase pada `AGENTS.MD` bagian 10.
 Fase berikutnya tidak dimulai sebelum fase sebelumnya lolos pengujian dan
 tidak memiliki blocker kritis.
 
-**Status keseluruhan:** Fase 1 s.d. Fase 9 **SELESAI** — 438 test / 1288 assertion lulus.
+**Status keseluruhan:** Fase 1 s.d. Fase 9 **SELESAI** — 474 test / 1394 assertion lulus.
 
 ---
 
@@ -20,9 +20,9 @@ tidak memiliki blocker kritis.
 | 6 | PPDB | ✅ Selesai | 36 | Periode, pendaftar, detail pendaftar, dokumen private, tagihan PPDB, konten, portal publik, submenu PPDB (pendaftar/tagihan/periode/pengumuman/8 pengaturan/akses portal) |
 | 7 | System Tools | ✅ Selesai | 17 | Log aktivitas, backup/restore, CSV siswa, notifikasi, antrian, info server |
 | 8 | Finalization | ✅ Selesai | 10 | Optimasi query, security review, pengaturan/pengguna/role, dokumentasi deployment |
-| 9 | Pengembangan Lanjutan | ✅ Selesai | 48 | Payment gateway (VA/QRIS + webhook), rekonsiliasi bank otomatis, payroll/honorarium, bebas tanggungan & SKL |
+| 9 | Pengembangan Lanjutan | ✅ Selesai | 62 | Payment gateway (VA/QRIS + webhook), rekonsiliasi bank otomatis, payroll/honorarium + slip PDF, bebas tanggungan & SKL |
 
-Total 438 test / 1288 assertion — termasuk 1 test bawaan Laravel (`ExampleTest`).
+Total 474 test / 1394 assertion — termasuk 1 test bawaan Laravel (`ExampleTest`).
 
 Keterangan: ✅ selesai · 🔄 berjalan · ⏳ berikutnya · ⬜ belum dimulai
 
@@ -328,17 +328,20 @@ Sisa Tagihan   = Total Tagihan - Total Pembayaran Terverifikasi
 ### 9.1 Payment Gateway (VA / QRIS Dinamis + Webhook)
 
 - Driver gateway: `TripayGateway`, `MidtransGateway`, `FakeGateway` di bawah
-  kontrak `App\Services\Gateway\Contracts\PaymentGateway` + `GatewayManager`. ✅
-- Provider dipilih per unit pendidikan (`units.gateway_provider`,
-  `gateway_enabled`, `gateway_channels`). ✅
+  kontrak `App\Services\Gateway\PaymentGateway` + `GatewayManager`. ✅
+- Provider dipilih per unit pendidikan (`units.payment_provider`,
+  `units.payment_channel`, `units.payment_gateway_enabled`). ✅
 - Penerbitan tagihan digital dari detail tagihan (`/tagihan/{bill}`) —
   tombol **Terbitkan VA/QRIS**, sinkronisasi channel, dan daftar
-  `/tagihan-digital` (`payment-intents.index`). ✅
+  `/pembayaran/tagihan-digital` (`payment-intents.index`). ✅
 - Webhook `POST /webhook/pembayaran/{provider}` — verifikasi signature,
   idempoten, dikecualikan dari CSRF. ✅
 - Penyelesaian otomatis memakai `PaymentService::create()` + `approve()` agar
   aturan keuangan tetap satu pintu; nominal tidak cocok **tidak** auto-approve. ✅
-- Pengujian: `PaymentGatewayTest` — 12 test. ✅
+- Kode bayar tampil di portal siswa dan portal orang tua melalui
+  `PortalService::openIntents()` + partial `livewire.public.partials.pay-code`. ✅
+- Pengujian: `PaymentGatewayTest` (15), `GatewayDriverTest` (11), dan 3 test
+  kode bayar pada `GuardianPortalTest`. ✅
 
 ### 9.2 Rekonsiliasi Bank Otomatis
 
@@ -348,7 +351,7 @@ Sisa Tagihan   = Total Tagihan - Total Pembayaran Terverifikasi
   Indonesia, dedupe berdasarkan `file_hash`. ✅
 - Auto-matching tiga aturan berurutan: `reference` (100%), `unique_amount`
   (90%), `amount_date` (75%); kandidat ganda dibiarkan unmatched. ✅
-- Aksi match manual, unmatch, dan ignore pada `/keuangan/rekonsiliasi`. ✅
+- Aksi match manual, unmatch, dan ignore pada `/keuangan/rekonsiliasi-bank`. ✅
 - Pengujian: `BankReconciliationTest` — 11 test. ✅
 
 ### 9.3 Payroll / Honorarium
@@ -358,18 +361,24 @@ Sisa Tagihan   = Total Tagihan - Total Pembayaran Terverifikasi
   **satu** `journals` (debit beban honorarium, kredit kas) melalui
   `JournalService`. ✅
 - Pembatalan periode melakukan reversal (void + soft delete), bukan hapus fisik. ✅
-- Antarmuka `/keuangan/payroll` dan `/keuangan/payroll/{period}`. ✅
-- Pengujian: `PayrollTest` — 12 test. ✅
+- Antarmuka `/keuangan/honorarium` dan `/keuangan/honorarium/{period}`. ✅
+- Cetak slip PDF A4 per penerima + rekap total & terbilang pada
+  `/keuangan/honorarium/{period}/slip` (`payrolls.slips`). ✅
+- Pengujian: `PayrollTest` — 15 test. ✅
 
 ### 9.4 Bebas Tanggungan & SKL
 
 - `ClearanceService` menghitung sisa tanggungan dari `student_bills`
   berstatus belum lunas dan menyimpan snapshot pada `graduation_clearances`. ✅
 - Override manual oleh pejabat berwenang disertai alasan & pelaku. ✅
+- Kelulusan (`StudentStatus::Graduated`) melalui `PromotionService::promote()`
+  ditolak bila masih ada tanggungan; wizard menampilkan panel peringatan
+  **Belum bebas tanggungan**. ✅
 - Penerbitan SKL bernomor otomatis + cetak PDF A4
-  (`/bebas-tanggungan/{clearance}/skl`). ✅
-- Antarmuka `/bebas-tanggungan` (`clearances.index`). ✅
-- Pengujian: `ClearanceTest` — 13 test. ✅
+  (`/data-master/siswa/{student}/skl`). ✅
+- Antarmuka `/data-master/siswa/bebas-tanggungan` (`clearances.index`). ✅
+- Pengujian: `ClearanceTest` (13) dan 5 test gerbang kelulusan pada
+  `StudentPromotionTest`. ✅
 
 ---
 
