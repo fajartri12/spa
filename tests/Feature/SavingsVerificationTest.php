@@ -67,12 +67,12 @@ class SavingsVerificationTest extends TestCase
 
     private function treasurer(): User
     {
-        return User::query()->where('email', 'bendahara@man7jombang.sch.id')->firstOrFail();
+        return User::query()->where('email', 'bendahara@email.com')->firstOrFail();
     }
 
     private function paymentOfficer(): User
     {
-        return User::query()->where('email', 'petugas@man7jombang.sch.id')->firstOrFail();
+        return User::query()->where('email', 'petugas@email.com')->firstOrFail();
     }
 
     private function deposit(float $amount): StudentSavingsTransaction

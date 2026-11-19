@@ -81,7 +81,7 @@ class ClearanceTest extends TestCase
 
     private function treasurer(): User
     {
-        return User::query()->where('email', 'bendahara@man7jombang.sch.id')->firstOrFail();
+        return User::query()->where('email', 'bendahara@email.com')->firstOrFail();
     }
 
     private function payOff(): void
@@ -246,7 +246,7 @@ class ClearanceTest extends TestCase
 
     public function test_component_requires_permission(): void
     {
-        $officer = User::query()->where('email', 'petugas@man7jombang.sch.id')->firstOrFail();
+        $officer = User::query()->where('email', 'petugas@email.com')->firstOrFail();
 
         $this->actingAs($officer);
 

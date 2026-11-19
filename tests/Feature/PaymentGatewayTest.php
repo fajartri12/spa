@@ -302,7 +302,7 @@ class PaymentGatewayTest extends TestCase
 
     public function test_intent_index_requires_permission(): void
     {
-        $officer = User::query()->where('email', 'petugas@man7jombang.sch.id')->firstOrFail();
+        $officer = User::query()->where('email', 'petugas@email.com')->firstOrFail();
 
         $this->actingAs($officer);
 

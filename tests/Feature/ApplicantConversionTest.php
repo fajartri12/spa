@@ -76,7 +76,7 @@ class ApplicantConversionTest extends TestCase
 
     private function admissionOperator(): User
     {
-        return User::query()->where('email', 'ppdb@man7jombang.sch.id')->firstOrFail();
+        return User::query()->where('email', 'ppdb@email.com')->firstOrFail();
     }
 
     public function test_conversion_creates_student_with_applicant_data(): void

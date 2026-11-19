@@ -146,12 +146,12 @@ dibuat manual dan kata sandinya wajib diganti.
 | Role | Email |
 |---|---|
 | Super Administrator | `superadmin@email.com` |
-| Administrator | `admin@man7jombang.sch.id` |
-| Bendahara | `bendahara@man7jombang.sch.id` |
-| Petugas Pembayaran | `petugas@man7jombang.sch.id` |
-| Verifikator | `verifikator@man7jombang.sch.id` |
-| Kepala Sekolah | `kepsek@man7jombang.sch.id` |
-| Operator PPDB | `ppdb@man7jombang.sch.id` |
+| Administrator | `admin@email.com` |
+| Bendahara | `bendahara@email.com` |
+| Petugas Pembayaran | `petugas@email.com` |
+| Verifikator | `verifikator@email.com` |
+| Kepala Sekolah | `kepsek@email.com` |
+| Operator PPDB | `ppdb@email.com` |
 
 ---
 

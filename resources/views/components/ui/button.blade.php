@@ -28,14 +28,17 @@
 <button
     type="{{ $type }}"
     {{ $attributes->merge(['class' => $classes]) }}
-    @if($loading) wire:loading.attr="disabled" @endif
+    @if($loading)
+        wire:loading.attr="disabled"
+        @if(is_string($loading) && $loading !== '1') wire:target="{{ $loading }}" @endif
+    @endif
 >
     @if($icon)
         <i data-lucide="{{ $icon }}" class="w-4 h-4" @if($loading) wire:loading.remove @endif></i>
     @endif
 
     @if($loading)
-        <i data-lucide="loader-circle" class="w-4 h-4 animate-spin" wire:loading></i>
+        <i data-lucide="loader-circle" class="w-4 h-4 animate-spin" wire:loading @if(is_string($loading) && $loading !== '1') wire:target="{{ $loading }}" @endif></i>
     @endif
 
     <span class="inline-flex items-center gap-2">{{ $slot }}</span>

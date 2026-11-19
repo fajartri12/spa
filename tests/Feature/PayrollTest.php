@@ -50,7 +50,7 @@ class PayrollTest extends TestCase
 
     private function treasurer(): User
     {
-        return User::query()->where('email', 'bendahara@man7jombang.sch.id')->firstOrFail();
+        return User::query()->where('email', 'bendahara@email.com')->firstOrFail();
     }
 
     private function makePeriod(array $overrides = []): PayrollPeriod
@@ -225,7 +225,7 @@ class PayrollTest extends TestCase
 
     public function test_component_requires_permission(): void
     {
-        $verifier = User::query()->where('email', 'verifikator@man7jombang.sch.id')->firstOrFail();
+        $verifier = User::query()->where('email', 'verifikator@email.com')->firstOrFail();
 
         $this->actingAs($verifier);
 
@@ -275,7 +275,7 @@ class PayrollTest extends TestCase
         $period = $this->makePeriod();
         $this->addItem($period);
 
-        $verifier = User::query()->where('email', 'verifikator@man7jombang.sch.id')->firstOrFail();
+        $verifier = User::query()->where('email', 'verifikator@email.com')->firstOrFail();
 
         $this->actingAs($verifier)
             ->get(route('payrolls.slips', $period))

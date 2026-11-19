@@ -43,7 +43,7 @@ class CashExpenseTest extends TestCase
 
     private function treasurer(): User
     {
-        return User::query()->where('email', 'bendahara@man7jombang.sch.id')->firstOrFail();
+        return User::query()->where('email', 'bendahara@email.com')->firstOrFail();
     }
 
     private function payload(array $overrides = []): array

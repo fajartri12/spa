@@ -10,7 +10,7 @@
             name="email"
             type="email"
             label="Alamat Email"
-            placeholder="nama@man7jombang.sch.id"
+            placeholder="nama@email.com"
             autocomplete="username"
             autofocus
             required
@@ -55,4 +55,33 @@
             Pendaftaran PPDB Online
         </a>
     </p>
+
+    @if($demoAccounts->isNotEmpty())
+        <details class="mt-6 border-t border-[#e5eaf0] pt-4">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium text-[#334155]">
+                <span class="inline-flex items-center gap-2">
+                    <i data-lucide="users-round" class="h-4 w-4 text-[#2872c8]"></i>
+                    Akun Demo
+                </span>
+                <i data-lucide="chevron-down" class="h-4 w-4 text-[#64748b]"></i>
+            </summary>
+
+            <div class="mt-3 divide-y divide-[#eef2f7] rounded-[6px] border border-[#e5eaf0]">
+                @foreach($demoAccounts as $account)
+                    <button
+                        type="button"
+                        wire:click="useDemoAccount('{{ $account->email }}')"
+                        class="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition hover:bg-[#f8fafc] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#2872c8]"
+                    >
+                        <span class="min-w-0">
+                            <span class="block text-[12px] font-semibold text-[#334155]">{{ $account->role }}</span>
+                            <span class="block break-all text-[11px] text-[#64748b]">{{ $account->email }}</span>
+                        </span>
+                        <span class="shrink-0 text-[11px] text-[#64748b]">password</span>
+                    </button>
+                @endforeach
+            </div>
+            <p class="mt-2 text-[11px] text-[#8994a3]">Pilih akun untuk mengisi formulir masuk.</p>
+        </details>
+    @endif
 </div>

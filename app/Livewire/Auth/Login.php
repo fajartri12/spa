@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Auth;
 
+use App\Enums\RoleName;
 use App\Services\ActivityLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +30,45 @@ class Login extends Component
         if (Auth::check()) {
             $this->redirectRoute('dashboard');
         }
+    }
+
+    /**
+     * Isi formulir dengan kredensial akun demo terpilih.
+     */
+    public function useDemoAccount(string $email): void
+    {
+        $account = collect($this->demoAccounts())->firstWhere('email', $email);
+
+        if ($account === null) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->email = $account->email;
+        $this->password = $account->password;
+    }
+
+    /**
+     * Daftar akun demo yang aman ditampilkan pada environment saat ini.
+     *
+     * @return \Illuminate\Support\Collection<int, object>
+     */
+    public function demoAccounts(): \Illuminate\Support\Collection
+    {
+        if (app()->isProduction()) {
+            return collect();
+        }
+
+        return collect(config('demo.accounts', []))
+            ->filter(fn (array $account): bool => app()->environment($account['can'] ?? []))
+            ->map(fn (array $account): object => (object) [
+                'role' => $account['role'] instanceof RoleName
+                    ? $account['role']->label()
+                    : (string) $account['role'],
+                'email' => (string) $account['email'],
+                'password' => (string) $account['password'],
+            ])
+            ->values();
     }
 
     public function login(ActivityLogger $logger): void
@@ -82,6 +122,8 @@ class Login extends Component
 
     public function render(): View
     {
-        return view('livewire.auth.login');
+        return view('livewire.auth.login', [
+            'demoAccounts' => $this->demoAccounts(),
+        ]);
     }
 }

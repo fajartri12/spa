@@ -28,6 +28,28 @@ class AuthenticationTest extends TestCase
             ->assertSee('Masuk ke Aplikasi');
     }
 
+    public function test_login_page_shows_demo_accounts_for_every_role(): void
+    {
+        $response = $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('Akun Demo')
+            ->assertSee('password');
+
+        foreach (RoleName::cases() as $role) {
+            $response->assertSee($role->label());
+        }
+
+        $this->assertSame(7, \App\Livewire\Auth\Login::demoAccounts()->count());
+    }
+
+    public function test_demo_account_selection_fills_login_form(): void
+    {
+        \Livewire\Livewire::test(\App\Livewire\Auth\Login::class)
+            ->call('useDemoAccount', 'bendahara@email.com')
+            ->assertSet('email', 'bendahara@email.com')
+            ->assertSet('password', 'password');
+    }
+
     public function test_root_redirects_to_dashboard(): void
     {
         $this->get('/')->assertRedirect('/beranda');

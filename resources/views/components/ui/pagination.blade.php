@@ -3,57 +3,97 @@
     'label' => 'data',
 ])
 
+@php
+    $showPagination = $paginator && $paginator->hasPages();
+    $pageName = $paginator?->getPageName() ?? 'page';
+    $total = $paginator?->total() ?? 0;
+
+    if ($showPagination) {
+        $current = $paginator->currentPage();
+        $last = $paginator->lastPage();
+        $window = $last > 2
+            ? collect(range(max(2, $current - 1), min($last - 1, $current + 1)))
+            : collect();
+
+        $pageItems = collect([1])
+            ->merge($window->isNotEmpty() && $window->first() > 2 ? ['gap-start'] : [])
+            ->merge($window)
+            ->merge($window->isNotEmpty() && $window->last() < $last - 1 ? ['gap-end'] : [])
+            ->merge($last > 1 ? [$last] : []);
+    }
+@endphp
+
 @if($paginator)
-    <div {{ $attributes->merge(['class' => 'flex flex-col gap-3 border-t border-[#e1e6ed] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5']) }}>
-        <p class="text-[12px] text-[#64748b]" aria-live="polite">
-            @if($paginator->total() > 0)
-                Menampilkan
-                <span class="font-medium text-[#334155]">{{ $paginator->firstItem() }}</span>
-                &ndash;
-                <span class="font-medium text-[#334155]">{{ $paginator->lastItem() }}</span>
-                dari
-                <span class="font-medium text-[#334155]">{{ number_format($paginator->total(), 0, ',', '.') }}</span>
-                {{ $label }}
+    <div {{ $attributes->merge(['class' => 'pagination-bar']) }}>
+        <p class="pagination-summary" aria-live="polite" aria-atomic="true">
+            @if($total > 0)
+                <span class="hidden sm:inline">Menampilkan </span>
+                <span class="font-semibold text-[#334155] tabular">{{ number_format($paginator->firstItem(), 0, ',', '.') }}–{{ number_format($paginator->lastItem(), 0, ',', '.') }}</span>
+                <span> dari </span>
+                <span class="font-semibold text-[#334155] tabular">{{ number_format($total, 0, ',', '.') }}</span>
+                <span>{{ $label }}</span>
             @else
                 Tidak ada {{ $label }}
             @endif
         </p>
 
-        @if($paginator->hasPages())
-            <nav class="flex items-center gap-1" aria-label="Navigasi halaman">
+        @if($showPagination)
+            <nav class="pagination-nav" aria-label="Navigasi halaman {{ $label }}">
                 @if($paginator->onFirstPage())
-                    <span class="btn-icon cursor-not-allowed opacity-40" aria-disabled="true" aria-label="Halaman sebelumnya">
+                    <span class="pagination-control" aria-disabled="true" aria-label="Halaman sebelumnya" title="Halaman sebelumnya">
                         <i data-lucide="chevron-left" class="h-4 w-4" aria-hidden="true"></i>
                     </span>
                 @else
-                    <button type="button" wire:click="previousPage" wire:loading.attr="disabled" class="btn-icon" aria-label="Halaman sebelumnya">
+                    <button
+                        type="button"
+                        wire:click="previousPage('{{ $pageName }}')"
+                        wire:loading.attr="disabled"
+                        wire:target="previousPage('{{ $pageName }}')"
+                        class="pagination-control"
+                        aria-label="Halaman sebelumnya"
+                        title="Halaman sebelumnya"
+                    >
                         <i data-lucide="chevron-left" class="h-4 w-4" aria-hidden="true"></i>
                     </button>
                 @endif
 
-                @foreach($paginator->onEachSide(1)->linkCollection() as $link)
-                    @php
-                        $pageLabel = strip_tags($link['label']);
-                        $isEllipsis = $pageLabel === '...';
-                    @endphp
-
-                    @if($isEllipsis)
-                        <span class="flex h-8 w-8 items-center justify-center text-[13px] text-[#94a3b8]" aria-hidden="true">&hellip;</span>
-                    @elseif($link['url'] === null)
-                        <span class="flex h-8 min-w-8 items-center justify-center rounded-[5px] bg-[#2872c8] px-2 text-[13px] font-medium text-white" aria-current="page">{{ $pageLabel }}</span>
-                    @else
-                        <button type="button" wire:click="gotoPage({{ (int) $pageLabel }})" wire:loading.attr="disabled" class="flex h-8 min-w-8 items-center justify-center rounded-[5px] px-2 text-[13px] text-[#475569] transition hover:bg-[#f1f5f9]" aria-label="Halaman {{ $pageLabel }}">
-                            {{ $pageLabel }}
-                        </button>
-                    @endif
-                @endforeach
+                <div class="pagination-pages" wire:loading.class="opacity-60" wire:target="previousPage('{{ $pageName }}'), nextPage('{{ $pageName }}'), gotoPage">
+                    @foreach($pageItems as $item)
+                        @if(is_string($item))
+                            <span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>
+                        @elseif($item === $current)
+                            <span class="pagination-page is-active" aria-current="page" aria-label="Halaman {{ $item }}, halaman aktif">
+                                {{ $item }}
+                            </span>
+                        @else
+                            <button
+                                type="button"
+                                wire:click="gotoPage({{ $item }}, '{{ $pageName }}')"
+                                wire:loading.attr="disabled"
+                                wire:target="gotoPage({{ $item }}, '{{ $pageName }}')"
+                                class="pagination-page"
+                                aria-label="Ke halaman {{ $item }}"
+                            >
+                                {{ $item }}
+                            </button>
+                        @endif
+                    @endforeach
+                </div>
 
                 @if($paginator->hasMorePages())
-                    <button type="button" wire:click="nextPage" wire:loading.attr="disabled" class="btn-icon" aria-label="Halaman berikutnya">
+                    <button
+                        type="button"
+                        wire:click="nextPage('{{ $pageName }}')"
+                        wire:loading.attr="disabled"
+                        wire:target="nextPage('{{ $pageName }}')"
+                        class="pagination-control"
+                        aria-label="Halaman berikutnya"
+                        title="Halaman berikutnya"
+                    >
                         <i data-lucide="chevron-right" class="h-4 w-4" aria-hidden="true"></i>
                     </button>
                 @else
-                    <span class="btn-icon cursor-not-allowed opacity-40" aria-disabled="true" aria-label="Halaman berikutnya">
+                    <span class="pagination-control" aria-disabled="true" aria-label="Halaman berikutnya" title="Halaman berikutnya">
                         <i data-lucide="chevron-right" class="h-4 w-4" aria-hidden="true"></i>
                     </span>
                 @endif

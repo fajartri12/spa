@@ -23,6 +23,7 @@ class DemoDataSeeder extends Seeder
             StaffProfileSeeder::class,
             SchoolClassSeeder::class,
             StudentSeeder::class,
+            TransactionSeeder::class,
         ]);
     }
 }

@@ -56,7 +56,7 @@ class SavingsManagementTest extends TestCase
     public function test_deposit_updates_balance_and_creates_ledger(): void
     {
         [$student, $account] = $this->setupData();
-        $user = User::query()->where('email', 'bendahara@man7jombang.sch.id')->firstOrFail();
+        $user = User::query()->where('email', 'bendahara@email.com')->firstOrFail();
 
         Livewire::actingAs($user)->test(\App\Livewire\Savings\SavingsTransaction::class, ['student' => $student->id])
             ->set('type', 'deposit')
@@ -79,7 +79,7 @@ class SavingsManagementTest extends TestCase
     public function test_modal_deposit_on_savings_index_updates_balance(): void
     {
         [$student, $account] = $this->setupData();
-        $user = User::query()->where('email', 'bendahara@man7jombang.sch.id')->firstOrFail();
+        $user = User::query()->where('email', 'bendahara@email.com')->firstOrFail();
 
         Livewire::actingAs($user)->test(\App\Livewire\Savings\SavingsIndex::class)
             ->call('openTransaction', $student->id)
@@ -106,7 +106,7 @@ class SavingsManagementTest extends TestCase
     public function test_modal_withdrawal_fails_when_insufficient_balance(): void
     {
         [$student, $account] = $this->setupData();
-        $user = User::query()->where('email', 'bendahara@man7jombang.sch.id')->firstOrFail();
+        $user = User::query()->where('email', 'bendahara@email.com')->firstOrFail();
 
         Livewire::actingAs($user)->test(\App\Livewire\Savings\SavingsIndex::class)
             ->call('openTransaction', $student->id)
@@ -122,7 +122,7 @@ class SavingsManagementTest extends TestCase
     public function test_filter_by_class_shows_only_students_in_that_class(): void
     {
         [$student1, $account1] = $this->setupData();
-        $user = User::query()->where('email', 'bendahara@man7jombang.sch.id')->firstOrFail();
+        $user = User::query()->where('email', 'bendahara@email.com')->firstOrFail();
 
         $year = AcademicYear::query()->where('is_active', true)->firstOrFail();
         $otherClass = SchoolClass::query()->create([

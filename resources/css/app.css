@@ -202,6 +202,140 @@
         color: var(--color-primary);
     }
 
+    /* Table pagination ---------------------------------------------------- */
+    .pagination-bar {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        border-top: 1px solid var(--color-line);
+        padding: 0.75rem 1rem;
+    }
+
+    .pagination-summary {
+        min-width: 0;
+        color: #64748b;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .pagination-nav,
+    .pagination-pages {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .pagination-nav {
+        align-self: center;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    /* Nomor halaman dipotong lebih agresif di layar sempit agar
+       tidak menabrak tombol panah kiri/kanan. */
+    .pagination-pages {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none;
+    }
+
+    .pagination-pages::-webkit-scrollbar {
+        display: none;
+    }
+
+    .pagination-control,
+    .pagination-page,
+    .pagination-ellipsis {
+        display: inline-flex;
+        flex: 0 0 auto;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        height: 2rem;
+        min-width: 2rem;
+        border-radius: var(--radius-control);
+        font-size: 13px;
+        line-height: 1;
+    }
+
+    .pagination-control,
+    .pagination-page {
+        border: 1px solid transparent;
+        transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+    }
+
+    .pagination-control {
+        color: #475569;
+    }
+
+    .pagination-control:hover:not(:disabled, [aria-disabled='true']) {
+        background-color: #f1f5f9;
+        color: var(--color-primary);
+    }
+
+    .pagination-control[aria-disabled='true'] {
+        color: #c0c8d2;
+        cursor: not-allowed;
+    }
+
+    .pagination-page {
+        padding-inline: 0.5rem;
+        color: #475569;
+    }
+
+    .pagination-page:hover:not(:disabled) {
+        background-color: #f1f5f9;
+        color: #1f2a37;
+    }
+
+    .pagination-page.is-active {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .pagination-page.is-active:hover {
+        background-color: var(--color-primary-dark);
+    }
+
+    .pagination-control:disabled,
+    .pagination-page:disabled {
+        cursor: wait;
+        opacity: 0.55;
+    }
+
+    .pagination-ellipsis {
+        color: #8994a3;
+    }
+
+    @media (min-width: 640px) {
+        .pagination-bar {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-inline: 1.25rem;
+        }
+
+        .pagination-nav {
+            align-self: auto;
+            flex: 0 0 auto;
+        }
+
+        .pagination-pages {
+            flex: 0 1 auto;
+            overflow-x: auto;
+        }
+
+        .pagination-pages.is-centered {
+            justify-content: center;
+        }
+    }
+
     /* Cards -------------------------------------------------------------- */
     .card {
         background-color: var(--color-surface);
