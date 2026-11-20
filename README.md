@@ -1,6 +1,6 @@
-# KOMITE MAN 7 JOMBANG
 
-Aplikasi Pengelolaan Pembayaran Tagihan Sekolah — MAN 7 Jombang.
+
+Aplikasi Pengelolaan Pembayaran Tagihan Sekolah — 
 
 Sistem terintegrasi untuk mengelola data induk sekolah, tagihan siswa,
 pembayaran, verifikasi, keuangan, laporan, PPDB, serta notifikasi kepada
