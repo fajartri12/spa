@@ -62,8 +62,9 @@ class ReportPagesTest extends TestCase
 
         $this->actingAs($user)->get(route('reports.transactions'))
             ->assertOk()
-            ->assertSee('PGT-APPROVED')
-            ->assertSee('PGT-PENDING')
+            ->assertDontSee('PGT-APPROVED')
+            ->assertDontSee('PGT-PENDING')
+            ->assertSee('Lunas')
             ->assertSee('125.000');
     }
 

@@ -30,7 +30,7 @@ class PaymentShow extends Component
     public function mount(Payment $payment): void
     {
         $this->authorize('payments.view');
-        $this->payment = $payment->load(['student', 'paymentCategory', 'academicYear', 'allocations.studentBill.bill.paymentCategory', 'details.paymentMethod', 'verifications.verifier', 'proofs']);
+        $this->payment = $payment->load(['student.schoolClass', 'paymentCategory', 'academicYear', 'allocations.studentBill.bill.paymentCategory', 'details.paymentMethod', 'verifications.verifier', 'proofs']);
     }
 
     public function approve(PaymentService $service): void
@@ -92,7 +92,7 @@ class PaymentShow extends Component
     private function process(callable $action, string $message): void
     {
         try {
-            $this->payment = $action()->fresh(['student', 'paymentCategory', 'academicYear', 'allocations.studentBill.bill.paymentCategory', 'details.paymentMethod', 'verifications.verifier', 'proofs']);
+            $this->payment = $action()->fresh(['student.schoolClass', 'paymentCategory', 'academicYear', 'allocations.studentBill.bill.paymentCategory', 'details.paymentMethod', 'verifications.verifier', 'proofs']);
             $this->reason = '';
             $this->dispatch('toast', type: 'success', message: $message);
         } catch (InvalidArgumentException $exception) {

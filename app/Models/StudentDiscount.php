@@ -12,9 +12,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class StudentDiscount extends Model
 {
     use SoftDeletes;
-    protected $fillable = ['student_id', 'payment_category_id', 'type', 'value', 'reason', 'is_active'];
+    protected $fillable = ['student_id', 'payment_category_id', 'scholarship_award_id', 'type', 'value', 'reason', 'is_active'];
     protected function casts(): array { return ['value' => 'decimal:2', 'is_active' => 'boolean']; }
     public function student(): BelongsTo { return $this->belongsTo(Student::class); }
     public function paymentCategory(): BelongsTo { return $this->belongsTo(PaymentCategory::class); }
+    public function scholarshipAward(): BelongsTo { return $this->belongsTo(ScholarshipAward::class); }
     public function billDiscounts(): HasMany { return $this->hasMany(BillDiscount::class); }
 }

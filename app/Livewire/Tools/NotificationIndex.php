@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Livewire\Tools;
 
+use App\Models\AppSetting;
 use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
+use App\Services\ActivityLogger;
 use App\Models\ReminderSchedule;
 use App\Support\Pagination;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -28,6 +31,44 @@ class NotificationIndex extends Component
     public string $channel = '';
 
     public string $status = '';
+
+    public string $whatsapp_endpoint = '';
+
+    public string $whatsapp_api_key = '';
+
+    public bool $whatsapp_api_key_configured = false;
+
+    public function mount(): void
+    {
+        $this->authorize('activity-logs.view');
+
+        $this->whatsapp_endpoint = (string) AppSetting::get(
+            'whatsapp_endpoint',
+            (string) config('services.whatsapp.endpoint'),
+        );
+        $this->whatsapp_api_key_configured = AppSetting::get('whatsapp_api_key') !== null;
+    }
+
+    public function saveWhatsAppSettings(ActivityLogger $logger): void
+    {
+        $this->authorize('settings.update');
+
+        $this->validate([
+            'whatsapp_endpoint' => ['required', 'url', 'max:500'],
+            'whatsapp_api_key' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        AppSetting::set('whatsapp_endpoint', $this->whatsapp_endpoint);
+
+        if ($this->whatsapp_api_key !== '') {
+            AppSetting::set('whatsapp_api_key', Crypt::encryptString($this->whatsapp_api_key));
+            $this->whatsapp_api_key = '';
+            $this->whatsapp_api_key_configured = true;
+        }
+
+        $logger->log('settings.updated', 'Memperbarui pengaturan gateway WhatsApp Starsender');
+        $this->dispatch('toast', type: 'success', message: 'Pengaturan WhatsApp berhasil disimpan.');
+    }
 
     public function updating(string $field): void
     {

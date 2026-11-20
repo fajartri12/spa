@@ -29,10 +29,10 @@ class PaymentIndex extends Component
     {
         $this->authorize('payments.view');
         $payments = Payment::query()
-            ->with('student')
+            ->with(['student.schoolClass', 'paymentCategory', 'details.paymentMethod'])
             ->when($this->search !== '', fn ($q) => $q->where(function ($query): void {
                 $query->where('transaction_number', 'like', "%{$this->search}%")
-                    ->orWhereHas('student', fn ($student) => $student->where('name', 'like', "%{$this->search}%"));
+                    ->orWhereHas('student', fn ($student) => $student->where('name', 'like', "%{$this->search}%")->orWhere('nis', 'like', "%{$this->search}%"));
             }))
             ->when($this->statusFilter !== '', fn ($q) => $q->where('status', $this->statusFilter))
             ->latest('paid_at')->paginate(Pagination::perPage());

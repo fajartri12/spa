@@ -36,8 +36,11 @@ return [
     ],
 
     'whatsapp' => [
-        'endpoint' => env('WHATSAPP_ENDPOINT', ''),
-        'token' => env('WHATSAPP_TOKEN', ''),
+        'endpoint' => env('STARSENDER_ENDPOINT') ?: (env('WHATSAPP_ENDPOINT') ?: 'https://api.starsender.online/api/send'),
+        'token' => env('STARSENDER_API_KEY') ?: env('WHATSAPP_TOKEN', ''),
+        'auth_header' => env('STARSENDER_AUTH_HEADER', 'Authorization'),
+        'auth_prefix' => env('STARSENDER_AUTH_PREFIX', 'Bearer'),
+        'timeout' => (int) env('STARSENDER_TIMEOUT', 20),
     ],
 
 ];

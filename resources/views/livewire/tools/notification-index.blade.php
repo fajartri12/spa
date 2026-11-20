@@ -32,6 +32,9 @@
         <button type="button" wire:click="$set('tab', 'schedules')" class="pb-2 font-medium border-b-2 {{ $tab === 'schedules' ? 'border-[#1e7e34] text-[#1e7e34]' : 'border-transparent text-[#64748b] hover:text-[#111827]' }}">
             Jadwal Pengingat
         </button>
+        <button type="button" wire:click="$set('tab', 'whatsapp')" class="pb-2 font-medium border-b-2 {{ $tab === 'whatsapp' ? 'border-[#1e7e34] text-[#1e7e34]' : 'border-transparent text-[#64748b] hover:text-[#111827]' }}">
+            Pengaturan WhatsApp
+        </button>
     </div>
 
     @if($tab === 'logs')
@@ -115,6 +118,36 @@
                 </div>
             @endforeach
         </div>
+    @elseif($tab === 'whatsapp')
+        <form wire:submit="saveWhatsAppSettings" class="grid gap-4 lg:grid-cols-3" novalidate>
+            <div class="lg:col-span-2 space-y-4">
+                <x-ui.card title="Gateway WhatsApp Starsender" subtitle="Atur koneksi API yang digunakan untuk mengirim notifikasi WhatsApp.">
+                    <div class="space-y-4">
+                        <x-ui.input wire:model="whatsapp_endpoint" name="whatsapp_endpoint" label="URL API" required hint="Default: https://api.starsender.online/api/send" />
+                        <x-ui.input wire:model="whatsapp_api_key" name="whatsapp_api_key" type="password" label="API Key" placeholder="{{ $whatsapp_api_key_configured ? 'Tersimpan, isi hanya untuk mengganti' : 'Masukkan API key Starsender' }}" autocomplete="new-password" />
+                        <div class="flex items-start gap-2 rounded-md border border-[#dbeafe] bg-[#eff6ff] p-3 text-xs text-[#1e40af]">
+                            <i data-lucide="shield-check" class="mt-0.5 h-4 w-4 shrink-0"></i>
+                            <span>API key disimpan terenkripsi dan tidak ditampilkan kembali setelah disimpan.</span>
+                        </div>
+                    </div>
+                </x-ui.card>
+            </div>
+            <div class="space-y-4">
+                <x-ui.card title="Payload Bawaan" subtitle="Field yang dikirim untuk notifikasi teks.">
+                    <dl class="space-y-2 text-xs">
+                        <div class="flex justify-between gap-3 border-b border-[#f1f5f9] py-2"><dt class="font-mono text-[#64748b]">messageType</dt><dd class="font-medium">text</dd></div>
+                        <div class="flex justify-between gap-3 border-b border-[#f1f5f9] py-2"><dt class="font-mono text-[#64748b]">to</dt><dd class="font-medium">Nomor penerima</dd></div>
+                        <div class="flex justify-between gap-3 py-2"><dt class="font-mono text-[#64748b]">body</dt><dd class="font-medium">Isi pesan</dd></div>
+                    </dl>
+                </x-ui.card>
+                @can('settings.update')
+                    <x-ui.button variant="primary" type="submit" loading="saveWhatsAppSettings" class="w-full justify-center">
+                        <i data-lucide="save" class="h-4 w-4"></i>
+                        <span>Simpan Pengaturan WhatsApp</span>
+                    </x-ui.button>
+                @endcan
+            </div>
+        </form>
     @else
         <div class="card !p-0 overflow-hidden">
             <x-ui.table :empty="$schedules->isEmpty()" empty-title="Belum Ada Jadwal" empty-description="Tambahkan jadwal pengingat untuk menjalankan notifikasi otomatis.">

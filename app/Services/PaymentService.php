@@ -54,9 +54,9 @@ final class PaymentService
         }
     }
 
-    public function approve(Payment $payment): Payment
+    public function approve(Payment $payment, bool $recordCash = true): Payment
     {
-        return $this->changeStatus($payment, PaymentStatus::Approved, 'payment.approved');
+        return $this->changeStatus($payment, PaymentStatus::Approved, 'payment.approved', null, $recordCash);
     }
 
     public function reject(Payment $payment, ?string $reason = null): Payment
@@ -181,9 +181,9 @@ final class PaymentService
         });
     }
 
-    private function changeStatus(Payment $payment, PaymentStatus $status, string $event, ?string $reason = null): Payment
+    private function changeStatus(Payment $payment, PaymentStatus $status, string $event, ?string $reason = null, bool $recordCash = true): Payment
     {
-        return DB::transaction(function () use ($payment, $status, $event, $reason): Payment {
+        return DB::transaction(function () use ($payment, $status, $event, $reason, $recordCash): Payment {
             $payment = Payment::query()->lockForUpdate()->with('allocations')->findOrFail($payment->id);
 
             if ($payment->status !== PaymentStatus::Pending) {
@@ -202,7 +202,7 @@ final class PaymentService
                 'verified_at' => now(),
             ]);
 
-            if ($status === PaymentStatus::Approved) {
+            if ($status === PaymentStatus::Approved && $recordCash) {
                 $this->recordCashTransaction($payment);
             }
 

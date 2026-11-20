@@ -85,6 +85,11 @@ class RoleSeeder extends Seeder
                 PermissionName::ClearancesCheck->value,
                 PermissionName::ClearancesOverride->value,
                 PermissionName::ClearancesIssue->value,
+                PermissionName::ScholarshipsCreate->value,
+                PermissionName::ScholarshipsUpdate->value,
+                PermissionName::ScholarshipsDelete->value,
+                PermissionName::ScholarshipsAward->value,
+                PermissionName::BudgetsUpdate->value,
             ],
             RoleName::PaymentOfficer => [
                 PermissionName::DashboardView->value,

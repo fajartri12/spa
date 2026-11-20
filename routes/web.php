@@ -44,11 +44,13 @@ use App\Livewire\Master\BankAccountIndex;
 use App\Livewire\Master\GuardianIndex;
 use App\Livewire\Master\PaymentCategoryIndex;
 use App\Livewire\Master\SchoolClassIndex;
+use App\Livewire\Master\ScholarshipIndex;
 use App\Livewire\Master\StaffIndex;
 use App\Livewire\Master\StudentIndex;
 use App\Livewire\Students\Clearances\ClearanceIndex;
 use App\Livewire\Students\StudentPromotion;
 use App\Livewire\Master\UnitIndex;
+use App\Livewire\Finance\BudgetIndex;
 use App\Livewire\Finance\BankReconciliationIndex;
 use App\Livewire\Payroll\PayrollIndex;
 use App\Livewire\Payroll\PayrollShow;
@@ -57,6 +59,8 @@ use App\Livewire\Payments\PaymentCreate;
 use App\Livewire\Payments\PaymentIndex;
 use App\Livewire\Payments\PaymentShow;
 use App\Livewire\Payments\PaymentVerification;
+use App\Livewire\Reports\AnalyticsIndex;
+use App\Livewire\Reports\LedgerIndex;
 use App\Livewire\Reports\ReportsIndex;
 use App\Livewire\Savings\SavingsIndex;
 use App\Livewire\Savings\SavingsTransaction;
@@ -158,10 +162,13 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/laporan/transaksi', TransactionIndex::class)->middleware('permission:reports.view')->name('reports.transactions');
     Route::get('/laporan/arus-kas', CashFlowIndex::class)->middleware('permission:reports.view')->name('reports.cash-flow');
     Route::get('/laporan/jurnal', JournalIndex::class)->middleware('permission:reports.view')->name('reports.journals');
+    Route::get('/laporan/buku-besar', LedgerIndex::class)->middleware('permission:reports.view')->name('reports.ledger');
+    Route::get('/laporan/analitik', AnalyticsIndex::class)->middleware('permission:reports.view')->name('reports.analytics');
     Route::get('/laporan/cetak', ReportPrintIndex::class)->middleware('permission:reports.export')->name('reports.print');
     Route::get('/keuangan/kas-keluar', CashExpenseIndex::class)->middleware('permission:cash-transactions.view')->name('cash.expenses');
     Route::get('/keuangan/rekonsiliasi-bank', BankReconciliationIndex::class)->middleware('permission:bank-reconciliations.view')->name('bank-reconciliations.index');
     Route::get('/keuangan/honorarium', PayrollIndex::class)->middleware('permission:payrolls.view')->name('payrolls.index');
+    Route::get('/keuangan/anggaran', BudgetIndex::class)->middleware('permission:budgets.view')->name('budgets.index');
     Route::get('/keuangan/honorarium/{payrollPeriod}', PayrollShow::class)->middleware('permission:payrolls.view')->name('payrolls.show');
     Route::get('/keuangan/honorarium/{payrollPeriod}/slip', PayrollSlipController::class)
         ->middleware('permission:payrolls.view')
@@ -223,6 +230,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/tagihan/export', BillCsvController::class)->middleware('permission:bills.view')->name('bills.export');
     Route::get('/tagihan/generate', BillGenerate::class)->middleware('permission:bills.generate')->name('bills.generate');
     Route::get('/tagihan/potongan', DiscountIndex::class)->middleware('permission:discounts.view')->name('discounts.index');
+    Route::get('/tagihan/beasiswa', ScholarshipIndex::class)->middleware('permission:scholarships.view')->name('scholarships.index');
     Route::get('/tagihan/{studentBill}', BillShow::class)->middleware('permission:bills.view')->name('bills.show');
 
     // Pengaturan

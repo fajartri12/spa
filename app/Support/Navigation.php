@@ -56,6 +56,7 @@ final class Navigation
                 'icon' => 'wallet',
                 'children' => [
                     ['label' => 'Kas Keluar', 'route' => 'cash.expenses', 'icon' => 'arrow-up-right', 'permission' => 'cash-transactions.view'],
+                    ['label' => 'Anggaran RAPBM', 'route' => 'budgets.index', 'icon' => 'calculator', 'permission' => 'budgets.view'],
                     ['label' => 'Rekonsiliasi Bank', 'route' => 'bank-reconciliations.index', 'icon' => 'landmark', 'permission' => 'bank-reconciliations.view'],
                     ['label' => 'Honorarium & Gaji', 'route' => 'payrolls.index', 'icon' => 'hand-coins', 'permission' => 'payrolls.view'],
                 ],
@@ -68,6 +69,8 @@ final class Navigation
                     ['label' => 'Transaksi', 'route' => 'reports.transactions', 'icon' => 'arrow-left-right', 'permission' => 'reports.view'],
                     ['label' => 'Arus Kas', 'route' => 'reports.cash-flow', 'icon' => 'banknote', 'permission' => 'reports.view'],
                     ['label' => 'Jurnal Umum', 'route' => 'reports.journals', 'icon' => 'book-open', 'permission' => 'reports.view'],
+                    ['label' => 'Buku Besar & Neraca', 'route' => 'reports.ledger', 'icon' => 'scale', 'permission' => 'reports.view'],
+                    ['label' => 'Analitik Finansial', 'route' => 'reports.analytics', 'icon' => 'bar-chart-3', 'permission' => 'reports.view'],
                     ['label' => 'Cetak Laporan', 'route' => 'reports.print', 'icon' => 'printer', 'permission' => 'reports.export'],
                 ],
             ],
@@ -80,6 +83,7 @@ final class Navigation
                     ['label' => 'Daftar Tagihan', 'route' => 'bills.index', 'icon' => 'list', 'permission' => 'bills.view'],
                     ['label' => 'Generate Tagihan', 'route' => 'bills.generate', 'icon' => 'file-plus', 'permission' => 'bills.generate'],
                     ['label' => 'Potongan Tagihan', 'route' => 'discounts.index', 'icon' => 'percent', 'permission' => 'discounts.view'],
+                    ['label' => 'Beasiswa & Keringanan', 'route' => 'scholarships.index', 'icon' => 'award', 'permission' => 'scholarships.view'],
                 ],
             ],
             [

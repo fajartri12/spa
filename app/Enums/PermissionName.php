@@ -103,6 +103,17 @@ enum PermissionName: string
     case DiscountsUpdate = 'discounts.update';
     case DiscountsDelete = 'discounts.delete';
 
+    // Beasiswa & keringanan
+    case ScholarshipsView = 'scholarships.view';
+    case ScholarshipsCreate = 'scholarships.create';
+    case ScholarshipsUpdate = 'scholarships.update';
+    case ScholarshipsDelete = 'scholarships.delete';
+    case ScholarshipsAward = 'scholarships.award';
+
+    // Anggaran (RAPBM)
+    case BudgetsView = 'budgets.view';
+    case BudgetsUpdate = 'budgets.update';
+
     // Pembayaran
     case PaymentsView = 'payments.view';
     case PaymentsCreate = 'payments.create';

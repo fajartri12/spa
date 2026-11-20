@@ -8,6 +8,7 @@ use App\Enums\Gender;
 use App\Enums\RoleName;
 use App\Enums\StudentStatus;
 use App\Jobs\SendFeeReminder;
+use App\Models\AppSetting;
 use App\Models\Bill;
 use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
@@ -20,6 +21,9 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -147,6 +151,43 @@ class NotificationTest extends TestCase
         Queue::assertPushed(SendFeeReminder::class, 1);
     }
 
+    public function test_notification_service_sends_starsender_text_and_optional_fields(): void
+    {
+        Http::fake(['api.starsender.online/*' => Http::response(['success' => true])]);
+        config([
+            'services.whatsapp.token' => 'test-api-key',
+            'services.whatsapp.auth_header' => 'api-key',
+            'services.whatsapp.auth_prefix' => '',
+        ]);
+
+        $template = NotificationTemplate::query()->where('channel', 'whatsapp')->firstOrFail();
+        $student = $this->makeStudent('081298765432');
+
+        $log = app(NotificationService::class)->send($template, $student, '081298765432', [
+            'nama' => $student->name,
+            'tagihan' => 'SPP November',
+            'nominal' => '200.000',
+            'jatuh_tempo' => '10 November 2026',
+            'sekolah' => 'MAN 7 Jombang',
+        ], [
+            'file' => 'https://example.test/invoice.pdf',
+            'delay' => 10,
+            'schedule' => 1665408510000,
+        ]);
+
+        $this->assertSame('sent', $log->status);
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.starsender.online/api/send'
+            && $request->hasHeader('api-key', 'test-api-key')
+            && $request->data() === [
+                'messageType' => 'text',
+                'to' => '081298765432',
+                'body' => $log->message,
+                'file' => 'https://example.test/invoice.pdf',
+                'delay' => 10,
+                'schedule' => 1665408510000,
+            ]);
+    }
+
     public function test_notification_service_logs_failure_when_whatsapp_gateway_is_missing(): void
     {
         config(['services.whatsapp.endpoint' => '', 'services.whatsapp.token' => '']);
@@ -192,10 +233,31 @@ class NotificationTest extends TestCase
         \Livewire\Livewire::actingAs($user)
             ->test(\App\Livewire\Tools\NotificationIndex::class)
             ->assertSee('Riwayat Notifikasi')
+            ->assertSee('Pengaturan WhatsApp')
             ->set('tab', 'templates')
             ->assertSee('Pengingat Tagihan (WhatsApp)')
             ->set('tab', 'schedules')
             ->assertSee('Pengingat H-3 WhatsApp');
+    }
+
+    public function test_whatsapp_settings_are_saved_encrypted(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(RoleName::SuperAdministrator->value);
+
+        \Livewire\Livewire::actingAs($user)
+            ->test(\App\Livewire\Tools\NotificationIndex::class)
+            ->set('whatsapp_endpoint', 'https://api.starsender.online/api/send')
+            ->set('whatsapp_api_key', 'secret-test-key')
+            ->call('saveWhatsAppSettings')
+            ->assertHasNoErrors()
+            ->assertSet('whatsapp_api_key', '')
+            ->assertSet('whatsapp_api_key_configured', true);
+
+        $stored = (string) AppSetting::get('whatsapp_api_key');
+
+        $this->assertNotSame('secret-test-key', $stored);
+        $this->assertSame('secret-test-key', Crypt::decryptString($stored));
     }
 
     private function makeStudent(string $parentPhone): Student

@@ -9,6 +9,7 @@ use App\Enums\CashTransactionType;
 use App\Models\Account;
 use App\Models\AppSetting;
 use App\Models\CashTransaction;
+use App\Models\Payment;
 use App\Models\Student;
 use App\Models\StudentSavingsAccount;
 use App\Models\StudentSavingsTransaction;
@@ -33,7 +34,10 @@ final class SavingsService
 
     public const STATUS_REJECTED = 'rejected';
 
-    public function __construct(private readonly ActivityLogger $logger) {}
+    public function __construct(
+        private readonly ActivityLogger $logger,
+        private readonly PaymentService $payments,
+    ) {}
 
     public function deposit(Student $student, float $amount, ?string $description, User $actor): StudentSavingsTransaction
     {
@@ -156,6 +160,87 @@ final class SavingsService
             );
 
             return $transaction;
+        });
+    }
+
+    /**
+     * Bayar satu atau beberapa tagihan langsung dari saldo tabungan siswa.
+     *
+     * Uang fisik sudah tercatat di kas madrasah sejak setoran, sehingga
+     * pembayaran ini tidak mencatat kas masuk lagi (menghindari double count).
+     *
+     * @param  array<int, array{student_bill_id:int, amount:numeric}>  $allocations
+     */
+    public function payBills(
+        Student $student,
+        array $allocations,
+        ?string $description,
+        User $actor,
+    ): Payment {
+        if ($allocations === []) {
+            throw new InvalidArgumentException('Pilih minimal satu tagihan untuk dibayar.');
+        }
+
+        return DB::transaction(function () use ($student, $allocations, $description, $actor): Payment {
+            $account = $this->lockAccount($student);
+            $total = 0.0;
+
+            foreach ($allocations as $row) {
+                $value = round((float) $row['amount'], 2);
+
+                if ($value <= 0) {
+                    throw new InvalidArgumentException('Nominal pembayaran tagihan tidak valid.');
+                }
+
+                $total = round($total + $value, 2);
+            }
+
+            $available = $this->availableBalance($account);
+
+            if ($total > $available) {
+                throw new InvalidArgumentException(
+                    'Saldo tabungan yang dapat digunakan tidak mencukupi (tersedia: Rp '.
+                    number_format($available, 0, ',', '.').').',
+                );
+            }
+
+            $payment = $this->payments->create([
+                'student_id' => $student->id,
+                'paid_at' => now(),
+                'amount' => $total,
+                'notes' => $description ?: 'Pembayaran tagihan via saldo tabungan',
+            ], $allocations);
+
+            $this->payments->approve($payment, recordCash: false);
+
+            $balanceBefore = (float) $account->balance;
+            $balanceAfter = round($balanceBefore - $total, 2);
+
+            $account->balance = $balanceAfter;
+            $account->save();
+
+            $transaction = StudentSavingsTransaction::query()->create([
+                'student_savings_account_id' => $account->id,
+                'user_id' => $actor->id,
+                'transaction_number' => $this->nextNumber('SAV-BAYAR'),
+                'type' => 'withdrawal',
+                'status' => self::STATUS_POSTED,
+                'amount' => $total,
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceAfter,
+                'transacted_at' => now(),
+                'description' => 'Pembayaran tagihan #'.$payment->transaction_number.($description ? ' ('.$description.')' : ''),
+            ]);
+
+            $this->logger->log(
+                'savings.bill_paid',
+                "Pembayaran tagihan {$payment->transaction_number} dari saldo {$student->name} sebesar ".number_format($total, 0, ',', '.'),
+                $transaction,
+                ['payment_id' => $payment->id, 'amount' => $total],
+                $actor,
+            );
+
+            return $payment->fresh(['allocations']);
         });
     }
 

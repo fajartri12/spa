@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\AppSetting;
 use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
 use App\Models\Student;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -37,8 +39,9 @@ class NotificationService
 
     /**
      * @param  array<string, string|int|float|null>  $replacements
+     * @param  array{file?: string, delay?: int, schedule?: int}|null  $whatsappOptions
      */
-    public function send(NotificationTemplate $template, Student $student, string $recipient, array $replacements): NotificationLog
+    public function send(NotificationTemplate $template, Student $student, string $recipient, array $replacements, ?array $whatsappOptions = null): NotificationLog
     {
         $message = $this->render($template, $replacements);
 
@@ -54,7 +57,7 @@ class NotificationService
         try {
             match ($template->channel) {
                 'email' => $this->sendEmail($recipient, $template->subject ?: $template->name, $message),
-                'whatsapp' => $this->sendWhatsApp($recipient, $message),
+                'whatsapp' => $this->sendWhatsApp($recipient, $message, $whatsappOptions ?? []),
                 default => throw new \RuntimeException("Kanal {$template->channel} tidak dikenal."),
             };
 
@@ -78,18 +81,45 @@ class NotificationService
         });
     }
 
-    private function sendWhatsApp(string $recipient, string $message): void
+    /**
+     * @param  array{file?: string, delay?: int, schedule?: int}  $options
+     */
+    private function sendWhatsApp(string $recipient, string $message, array $options): void
     {
-        $endpoint = (string) config('services.whatsapp.endpoint');
-        $token = (string) config('services.whatsapp.token');
+        $endpoint = (string) AppSetting::get('whatsapp_endpoint', config('services.whatsapp.endpoint'));
+        $storedToken = AppSetting::get('whatsapp_api_key');
+        $token = $storedToken !== null
+            ? Crypt::decryptString((string) $storedToken)
+            : (string) config('services.whatsapp.token');
+        $header = (string) AppSetting::get(
+            'whatsapp_auth_header',
+            config('services.whatsapp.auth_header', 'Authorization'),
+        );
+        $prefix = (string) AppSetting::get(
+            'whatsapp_auth_prefix',
+            config('services.whatsapp.auth_prefix', 'Bearer'),
+        );
 
-        if ($endpoint === '' || $token === '') {
-            throw new \RuntimeException('Gateway WhatsApp belum dikonfigurasi (WHATSAPP_ENDPOINT / WHATSAPP_TOKEN).');
+        if ($endpoint === '' || $token === '' || $header === '') {
+            throw new \RuntimeException('Gateway WhatsApp belum dikonfigurasi (STARSENDER_API_KEY dan header autentikasi).');
         }
 
-        $response = \Illuminate\Support\Facades\Http::withToken($token)
-            ->timeout(20)
-            ->post($endpoint, ['target' => $recipient, 'message' => $message]);
+        $payload = [
+            'messageType' => 'text',
+            'to' => $recipient,
+            'body' => $message,
+        ];
+
+        foreach (['file', 'delay', 'schedule'] as $key) {
+            if (isset($options[$key])) {
+                $payload[$key] = $options[$key];
+            }
+        }
+
+        $authorization = trim($prefix) === '' ? $token : trim($prefix).' '.$token;
+        $response = \Illuminate\Support\Facades\Http::withHeaders([$header => $authorization])
+            ->timeout((int) config('services.whatsapp.timeout', 20))
+            ->post($endpoint, $payload);
 
         if ($response->failed()) {
             throw new \RuntimeException('Gateway WhatsApp menolak permintaan: '.$response->status());
