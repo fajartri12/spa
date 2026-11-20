@@ -39,7 +39,7 @@ class AuthenticationTest extends TestCase
             $response->assertSee($role->label());
         }
 
-        $this->assertSame(7, \App\Livewire\Auth\Login::demoAccounts()->count());
+        $this->assertSame(7, \Livewire\Livewire::test(\App\Livewire\Auth\Login::class)->instance()->demoAccounts()->count());
     }
 
     public function test_demo_account_selection_fills_login_form(): void
