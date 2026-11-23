@@ -70,6 +70,35 @@ class NotificationService
         return $log;
     }
 
+    /**
+     * Kirim pesan WhatsApp bebas (tanpa template) dan catat hasilnya.
+     *
+     * Dipakai untuk kode bayar ulang dan OTP ubah password. Pesan OTP
+     * sengaja tidak disalin ke kolom `message` agar tidak tersimpan permanen.
+     */
+    public function sendWhatsAppText(string $recipient, string $message, ?Student $student = null, bool $recordMessage = true): NotificationLog
+    {
+        $log = NotificationLog::query()->create([
+            'notification_template_id' => null,
+            'student_id' => $student?->id,
+            'channel' => 'whatsapp',
+            'recipient' => $recipient,
+            'status' => 'pending',
+            'message' => $recordMessage ? $message : null,
+        ]);
+
+        try {
+            $this->sendWhatsApp($recipient, $message, []);
+
+            $log->update(['status' => 'sent', 'sent_at' => now()]);
+        } catch (\Throwable $e) {
+            report($e);
+            $log->update(['status' => 'failed', 'error' => $e->getMessage()]);
+        }
+
+        return $log;
+    }
+
     private function sendEmail(string $recipient, string $subject, string $message): void
     {
         if (! filter_var($recipient, FILTER_VALIDATE_EMAIL)) {

@@ -7,6 +7,8 @@ namespace App\Livewire\Payments\Intents;
 use App\Enums\GatewayProvider;
 use App\Enums\PaymentIntentStatus;
 use App\Models\PaymentIntent;
+use App\Models\Student;
+use App\Services\NotificationService;
 use App\Services\PaymentGatewayService;
 use App\Support\Pagination;
 use Illuminate\Contracts\View\View;
@@ -111,6 +113,97 @@ class PaymentIntentIndex extends Component
         $this->showCancelModal = false;
         $this->reset('cancellingId', 'cancelReason');
         $this->dispatch('toast', type: 'success', message: 'Tagihan digital berhasil dibatalkan.');
+    }
+
+    /**
+     * Kirim ulang kode bayar ke WhatsApp wali agar orang tua tidak perlu
+     * membuka portal untuk menyalin nomor VA/QRIS.
+     */
+    public function resendWhatsApp(int $intentId, NotificationService $service): void
+    {
+        $this->authorize('payment-gateways.view');
+
+        $intent = PaymentIntent::query()
+            ->with(['student.guardians', 'studentBill.bill.paymentCategory'])
+            ->findOrFail($intentId);
+
+        if (! $intent->status->isOpen()) {
+            $this->dispatch('toast', type: 'error', message: 'Kode bayar sudah tidak berlaku sehingga tidak dapat dikirim ulang.');
+
+            return;
+        }
+
+        $student = $intent->student;
+        $recipient = $this->resolveGuardianPhone($student);
+
+        if ($recipient === null) {
+            $this->dispatch('toast', type: 'error', message: 'Nomor WhatsApp wali belum tersedia. Perbarui data wali terlebih dahulu.');
+
+            return;
+        }
+
+        $log = $service->sendWhatsAppText($recipient, $this->buildPayCodeMessage($intent), $student);
+
+        $this->dispatch(
+            'toast',
+            type: $log->status === 'sent' ? 'success' : 'error',
+            message: $log->status === 'sent'
+                ? 'Kode bayar terkirim ke WhatsApp '.$recipient.'.'
+                : 'Gagal mengirim WhatsApp. '.($log->error ?? 'Periksa konfigurasi gateway.'),
+        );
+    }
+
+    private function resolveGuardianPhone(?Student $student): ?string
+    {
+        if ($student === null) {
+            return null;
+        }
+
+        $guardianPhone = $student->guardians
+            ->sortByDesc(fn ($guardian) => (bool) $guardian->pivot->is_primary)
+            ->pluck('phone')
+            ->first(fn (?string $phone) => $phone !== null && trim($phone) !== '');
+
+        if ($guardianPhone !== null && trim($guardianPhone) !== '') {
+            return $guardianPhone;
+        }
+
+        $fallback = $student->parent_phone;
+
+        return $fallback !== null && trim($fallback) !== '' ? $fallback : null;
+    }
+
+    private function buildPayCodeMessage(PaymentIntent $intent): string
+    {
+        $studentName = $intent->student?->name ?? 'Siswa';
+        $title = $intent->studentBill?->bill?->title
+            ?? $intent->studentBill?->bill?->paymentCategory?->name
+            ?? 'Tagihan Sekolah';
+
+        $lines = [
+            'Assalamu\'alaikum Bapak/Ibu Wali dari '.$studentName.'.',
+            'Berikut kode pembayaran tagihan sekolah:',
+            '',
+            '*'.$title.'*',
+            'Nominal: Rp '.number_format((float) $intent->amount, 0, ',', '.'),
+            'Penyedia: '.$intent->provider->label().' ('.$intent->channelLabel().')',
+        ];
+
+        if ($intent->pay_code !== null) {
+            $lines[] = 'Kode Bayar: '.$intent->pay_code;
+        } elseif ($intent->qr_string !== null) {
+            $lines[] = 'Metode: QRIS (pindai kode pada aplikasi pembayaran).';
+        }
+
+        if ($intent->expires_at !== null) {
+            $lines[] = 'Berlaku sampai: '.$intent->expires_at->timezone('Asia/Jakarta')->format('d M Y H:i').' WIB';
+        }
+
+        $lines[] = 'Referensi: '.$intent->reference;
+        $lines[] = '';
+        $lines[] = 'Pembayaran terverifikasi otomatis. Terima kasih.';
+
+        return implode("\n", $lines);
     }
 
     public function render(): View

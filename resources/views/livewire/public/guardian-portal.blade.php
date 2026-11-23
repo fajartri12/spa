@@ -176,6 +176,11 @@
                 </div>
             </section>
 
+            {{-- Kartu visual matriks SPP --}}
+            @if($sppMatrix)
+                @include('livewire.public.partials.spp-matrix', ['sppMatrix' => $sppMatrix, 'sppPdfUrl' => $sppPdfUrl])
+            @endif
+
             {{-- Rincian tagihan --}}
             <section id="tagihan" data-portal-section class="portal-card scroll-mt-24 overflow-hidden">
                 <div class="flex items-center justify-between gap-3 border-b border-[#E2E8F0] px-4 py-4 sm:px-5">
@@ -208,6 +213,12 @@
                             </div>
                             @if($detail['intents']->has($bill->id))
                                 @include('livewire.public.partials.pay-code', ['intent' => $detail['intents']->get($bill->id)])
+                            @endif
+                            @if(! in_array($billStatus, [\App\Enums\BillStatus::Paid->value, \App\Enums\BillStatus::Cancelled->value], true) && (float) $bill->remaining_amount > 0)
+                                <button type="button" wire:click="openProofModal({{ $bill->id }})"
+                                        class="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#E2E8F0] px-3 text-xs font-semibold text-[#334155] transition hover:bg-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#2563EB]">
+                                    <i data-lucide="upload" aria-hidden="true" class="h-4 w-4"></i>Unggah Bukti Transfer
+                                </button>
                             @endif
                         </article>
                     @empty
@@ -487,4 +498,6 @@
             @endforeach
         </div>
     </nav>
+
+    @include('livewire.public.partials.transfer-proof-modal')
 </div>

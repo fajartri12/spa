@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Livewire\Public;
 
 use App\Enums\BillStatus;
+use App\Livewire\Public\Concerns\UploadsTransferProof;
 use App\Models\Guardian;
 use App\Models\Student;
+use App\Models\StudentBill;
 use App\Services\PortalService;
+use App\Services\SppMatrixService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -23,6 +26,8 @@ use Livewire\Component;
 #[Layout('layouts.public')]
 class GuardianPortal extends Component
 {
+    use UploadsTransferProof;
+
     #[Url(as: 'anak')]
     public string $selectedStudentId = '';
 
@@ -38,7 +43,7 @@ class GuardianPortal extends Component
         $this->selectedStudentId = (string) $studentId;
     }
 
-    public function render(PortalService $portal): View
+    public function render(PortalService $portal, SppMatrixService $sppMatrix): View
     {
         $guardian = Guardian::query()
             ->with(['activeStudents.unit', 'activeStudents.schoolClass', 'activeStudents.savingsAccount'])
@@ -49,6 +54,8 @@ class GuardianPortal extends Component
 
         $selected = $this->resolveSelectedStudent($students);
         $detail = null;
+        $matrix = null;
+        $pdfUrl = null;
 
         if ($selected instanceof Student) {
             $detail = [
@@ -60,6 +67,9 @@ class GuardianPortal extends Component
                 'savings_account' => $selected->savingsAccount,
                 'savings_transactions' => $portal->savingsTransactions($selected),
             ];
+
+            $matrix = $sppMatrix->getMatrix($selected);
+            $pdfUrl = route('public.spp-recap', $selected);
         }
 
         return view('livewire.public.guardian-portal', [
@@ -68,9 +78,28 @@ class GuardianPortal extends Component
             'students' => $students,
             'selected' => $selected,
             'detail' => $detail,
+            'sppMatrix' => $matrix,
+            'sppPdfUrl' => $pdfUrl,
             'totalOutstanding' => $overview->sum('outstanding_amount'),
             'totalSavings' => $overview->sum('savings_balance'),
         ]);
+    }
+
+    /**
+     * @return list<StudentBill>
+     */
+    protected function proofBills(): iterable
+    {
+        $guardian = Guardian::query()->find(session('public_guardian_id'));
+
+        if ($guardian === null) {
+            return [];
+        }
+
+        return StudentBill::query()
+            ->whereIn('student_id', $guardian->activeStudents()->pluck('students.id'))
+            ->get()
+            ->all();
     }
 
     /**

@@ -27,6 +27,9 @@
             <a href="{{ route('bills.index') }}" class="btn btn-secondary">
                 <i data-lucide="arrow-left" class="h-4 w-4"></i><span>Kembali</span>
             </a>
+            <a href="{{ route('bills.spp-recap', $studentBill->student_id) }}" class="btn btn-secondary">
+                <i data-lucide="file-down" class="h-4 w-4"></i><span>Rekap SPP</span>
+            </a>
         </div>
     </div>
 

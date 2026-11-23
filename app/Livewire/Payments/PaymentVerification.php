@@ -60,6 +60,7 @@ class PaymentVerification extends Component
 
         $payments = Payment::query()
             ->with(['student', 'paymentCategory'])
+            ->withCount('proofs')
             ->where('status', PaymentStatus::Pending)
             ->when($this->search !== '', fn ($q) => $q->where(function ($query): void {
                 $query->where('transaction_number', 'like', "%{$this->search}%")

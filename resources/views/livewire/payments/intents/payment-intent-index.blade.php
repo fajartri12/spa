@@ -92,6 +92,16 @@
                                     <span class="sr-only">Payload QRIS</span>
                                 </span>
                             @endif
+                            @if($intent->status->isOpen())
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        wire:click="resendWhatsApp({{ $intent->id }})"
+                                        wire:loading.attr="disabled"
+                                        wire:target="resendWhatsApp({{ $intent->id }})"
+                                        title="Kirim ulang kode bayar ke WhatsApp wali">
+                                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    <span>Kirim WA</span>
+                                </button>
+                            @endif
                             @can('payment-gateways.cancel')
                                 @if($intent->status->isOpen())
                                     <button type="button" class="btn btn-danger btn-sm" wire:click="confirmCancel({{ $intent->id }})">

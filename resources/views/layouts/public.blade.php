@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 @php
+    use App\Models\AppSetting;
+
     $routeName = request()->route()?->getName() ?? '';
     $isPortal = str_starts_with($routeName, 'public.guardian.') || str_starts_with($routeName, 'public.student.');
     $defaultPortalLabel = match (true) {
@@ -8,6 +10,7 @@
         str_starts_with($routeName, 'public.student.') => 'Portal Siswa',
         default => 'Penerimaan Peserta Didik Baru',
     };
+    $appName = trim((string) AppSetting::get('app_name', '')) ?: config('app.name');
 @endphp
 <head>
     <meta charset="utf-8">
@@ -15,7 +18,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#2563EB">
 
-    <title>{{ isset($title) ? $title . ' - ' . config('app.name') : config('app.name') }}</title>
+    <title>{{ isset($title) ? $title . ' - ' . $appName : ($isPortal ? $defaultPortalLabel . ' - ' . $appName : $appName) }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet">
@@ -31,7 +34,7 @@
                     <i data-lucide="landmark" aria-hidden="true" class="h-5 w-5 text-[#2563EB]"></i>
                 </div>
                 <div class="min-w-0">
-                    <p class="truncate text-sm font-bold leading-tight text-[#0F172A]">KOMITE MAN 7 JOMBANG</p>
+                    <p class="truncate text-sm font-bold leading-tight text-[#0F172A]">{{ $appName }}</p>
                     <p class="truncate text-xs leading-tight text-[#64748B]">{{ $portalLabel ?? $defaultPortalLabel }}</p>
                     @hasSection('portal-badge')
                         <p class="mt-0.5 truncate text-[11px] font-medium leading-tight text-[#2563EB]">@yield('portal-badge')</p>

@@ -12,10 +12,12 @@ use App\Http\Controllers\PaymentReceiptController;
 use App\Http\Controllers\PayrollSlipController;
 use App\Http\Controllers\PortalReceiptController;
 use App\Http\Controllers\PublicGuardianController;
+use App\Http\Controllers\PublicGuardianPasswordController;
 use App\Http\Controllers\PublicRegistrationController;
 use App\Http\Controllers\PublicStudentController;
 use App\Http\Controllers\ReportPrintController;
 use App\Http\Controllers\SklPdfController;
+use App\Http\Controllers\SppRecapPdfController;
 use App\Http\Controllers\StudentCsvController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use App\Livewire\Admissions\AdmissionBillIndex;
@@ -119,11 +121,25 @@ Route::prefix('portal/orang-tua')->name('public.guardian.')->group(function (): 
     Route::get('/', \App\Livewire\Public\GuardianPortal::class)
         ->middleware('auth.public.guardian')
         ->name('dashboard');
+
+    Route::get('/lupa-password', [PublicGuardianPasswordController::class, 'showForgot'])->name('forgot');
+    Route::post('/lupa-password', [PublicGuardianPasswordController::class, 'sendOtp'])
+        ->middleware('throttle:3,1')
+        ->name('forgot.send');
+    Route::get('/lupa-password/verifikasi', [PublicGuardianPasswordController::class, 'showReset'])
+        ->name('forgot.verify');
+    Route::post('/lupa-password/verifikasi', [PublicGuardianPasswordController::class, 'reset'])
+        ->middleware('throttle:5,1')
+        ->name('forgot.reset');
 });
 
 Route::get('/portal/kwitansi/{payment}', PortalReceiptController::class)
     ->middleware('throttle:30,1')
     ->name('public.receipt');
+
+Route::get('/portal/rekap-spp/{student}', SppRecapPdfController::class)
+    ->middleware('throttle:30,1')
+    ->name('public.spp-recap');
 
 /*
 |--------------------------------------------------------------------------
@@ -232,6 +248,9 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/tagihan/potongan', DiscountIndex::class)->middleware('permission:discounts.view')->name('discounts.index');
     Route::get('/tagihan/beasiswa', ScholarshipIndex::class)->middleware('permission:scholarships.view')->name('scholarships.index');
     Route::get('/tagihan/{studentBill}', BillShow::class)->middleware('permission:bills.view')->name('bills.show');
+    Route::get('/tagihan/siswa/{student}/rekap-spp', SppRecapPdfController::class)
+        ->middleware('permission:bills.view')
+        ->name('bills.spp-recap');
 
     // Pengaturan
     Route::get('/pengaturan', SettingIndex::class)

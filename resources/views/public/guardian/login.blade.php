@@ -18,6 +18,12 @@
                 </div>
             @endif
 
+            @if(session('status'))
+                <div class="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-medium text-emerald-800">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('public.guardian.authenticate') }}" class="space-y-4">
                 @csrf
 
@@ -49,6 +55,7 @@
                     @enderror
                     <p class="mt-1.5 text-[11px] leading-relaxed text-[#64748B]">
                         Password diberikan oleh petugas sekolah.
+                        <a href="{{ route('public.guardian.forgot') }}" class="font-semibold text-[#2563EB] hover:underline">Lupa password?</a>
                     </p>
                 </div>
 

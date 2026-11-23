@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\Public;
 
+use App\Livewire\Public\Concerns\UploadsTransferProof;
 use App\Models\Student;
+use App\Models\StudentBill;
 use App\Services\PortalService;
+use App\Services\SppMatrixService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -20,6 +23,8 @@ use Livewire\Component;
 #[Layout('layouts.public')]
 class StudentPortal extends Component
 {
+    use UploadsTransferProof;
+
     public ?Student $student = null;
 
     public function mount(): void
@@ -33,7 +38,7 @@ class StudentPortal extends Component
         $this->student = Student::query()->findOrFail($studentId);
     }
 
-    public function render(PortalService $portal): View
+    public function render(PortalService $portal, SppMatrixService $sppMatrix): View
     {
         return view('livewire.public.student-portal', [
             'bills' => $portal->bills($this->student),
@@ -43,6 +48,16 @@ class StudentPortal extends Component
             'outstanding' => $portal->outstanding($this->student),
             'savingsAccount' => $this->student->savingsAccount,
             'savingsTransactions' => $portal->savingsTransactions($this->student),
+            'sppMatrix' => $sppMatrix->getMatrix($this->student),
+            'sppPdfUrl' => route('public.spp-recap', $this->student),
         ]);
+    }
+
+    /**
+     * @return list<StudentBill>
+     */
+    protected function proofBills(): iterable
+    {
+        return $this->student->studentBills()->get()->all();
     }
 }

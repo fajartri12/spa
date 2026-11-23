@@ -36,6 +36,7 @@
                     <th>Tanggal</th>
                     <th>Siswa</th>
                     <th>Kategori</th>
+                    <th>Bukti</th>
                     <th class="text-right">Nominal</th>
                     <th class="text-right">Aksi</th>
                 </tr>
@@ -48,6 +49,17 @@
                     <td>{{ $payment->paid_at?->format('d/m/Y H:i') }}</td>
                     <td>{{ $payment->student?->name ?? '-' }}</td>
                     <td>{{ $payment->paymentCategory?->name ?? '-' }}</td>
+                    <td>
+                        @if($payment->proofs_count > 0)
+                            <a href="{{ route('payments.show', $payment) }}"
+                               class="inline-flex items-center gap-1 rounded-full bg-[#E0F2FE] px-2 py-0.5 text-[11px] font-semibold text-[#0369A1] hover:underline">
+                                <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
+                                {{ $payment->proofs_count }} berkas
+                            </a>
+                        @else
+                            <span class="text-[12px] text-[#8994a3]">Tanpa bukti</span>
+                        @endif
+                    </td>
                     <td class="text-right tabular">{{ Formatter::rupiah((float) $payment->amount) }}</td>
                     <td class="text-right">
                         <div class="flex items-center justify-end gap-1">
