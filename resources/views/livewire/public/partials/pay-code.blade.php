@@ -4,7 +4,7 @@
     $isQris = $payCode === null && $intent->qr_string !== null;
 @endphp
 
-<div class="mt-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-xs">
+<div class="mt-3 rounded-[14px] border border-blue-200 bg-blue-50 p-4 text-xs">
     <div class="flex items-center justify-between gap-2">
         <span class="font-semibold text-blue-900">Kode Bayar {{ $intent->provider->label() }}</span>
         <span class="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-blue-700">{{ $intent->channelLabel() }}</span>
@@ -14,7 +14,7 @@
         <div class="mt-2 flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2">
             <span class="select-all font-mono text-sm font-bold tracking-wider text-gray-900">{{ $payCode }}</span>
             <button type="button"
-                    class="shrink-0 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-50"
+                    class="min-h-11 shrink-0 rounded-xl border border-slate-200 px-3 py-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     x-data="{ copied: false }"
                     x-on:click="navigator.clipboard.writeText(@js($payCode)).then(() => { copied = true; setTimeout(() => copied = false, 2000) })">
                 <span x-text="copied ? 'Tersalin' : 'Salin'">Salin</span>

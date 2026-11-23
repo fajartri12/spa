@@ -24,6 +24,9 @@
         ];
     }
     $footer = (string) AppSetting::get('theme_login_footer', 'KOMITE MAN 7 JOMBANG');
+
+    $appName = trim((string) AppSetting::get('app_name', '')) ?: config('app.name');
+    $schoolName = trim((string) AppSetting::get('school_name', ''));
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
@@ -33,7 +36,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="{{ $primaryColor }}">
 
-    <title>{{ isset($title) ? $title . ' — ' . config('app.name') : config('app.name') }}</title>
+    <title>{{ isset($title) ? $title . ' — ' . $appName : $appName }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
@@ -92,8 +95,10 @@
                             <i data-lucide="landmark" class="w-7 h-7" style="color: {{ $primaryColor }};"></i>
                         </div>
                         <div>
-                            <p class="text-white font-semibold text-[15px] leading-tight">KOMITE</p>
-                            <p class="text-white/80 text-[13px] leading-tight">MAN 7 JOMBANG</p>
+                            <p class="text-white font-semibold text-[15px] leading-tight">{{ $appName }}</p>
+                            @if($schoolName !== '')
+                                <p class="text-white/80 text-[13px] leading-tight">{{ $schoolName }}</p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -130,8 +135,10 @@
                             <i data-lucide="landmark" class="w-6 h-6 text-white"></i>
                         </div>
                         <div>
-                            <p class="text-[#111827] font-semibold text-sm leading-tight">KOMITE</p>
-                            <p class="text-[#64748b] text-[12px] leading-tight">{{ $footer }}</p>
+                            <p class="text-[#111827] font-semibold text-sm leading-tight">{{ $appName }}</p>
+                            @if($schoolName !== '')
+                                <p class="text-[#64748b] text-[12px] leading-tight">{{ $schoolName }}</p>
+                            @endif
                         </div>
                     </div>
 

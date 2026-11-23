@@ -71,6 +71,21 @@ class GuardianPortalTest extends TestCase
         $response->assertSessionHas('public_guardian_id', $guardian->id);
     }
 
+    public function test_guardian_login_ignores_stale_intended_url(): void
+    {
+        $guardian = $this->createGuardian();
+
+        session(['url.intended' => '/masuk']);
+
+        $response = $this->post('/portal/orang-tua/authenticate', [
+            'phone' => $guardian->phone,
+            'password' => 'wali-password',
+        ]);
+
+        $response->assertRedirect('/portal/orang-tua');
+        $this->assertNull(session('url.intended'));
+    }
+
     public function test_phone_is_normalised_so_formatted_numbers_still_log_in(): void
     {
         $guardian = $this->createGuardian();

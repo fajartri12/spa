@@ -623,6 +623,73 @@
         font-weight: 500;
     }
 
+    /* Portal publik ------------------------------------------------------ */
+    /* Scope khusus portal orang tua/siswa. Token global sengaja tidak
+       diubah agar tampilan panel admin tetap konsisten. */
+    .portal-app {
+        --portal-primary: #2563eb;
+        --portal-primary-dark: #1d4ed8;
+        --portal-secondary: #10b981;
+        --portal-accent: #f59e0b;
+        --portal-canvas: #f4f7fb;
+        --portal-surface: #ffffff;
+        --portal-text: #0f172a;
+        --portal-muted: #64748b;
+        --portal-line: #e2e8f0;
+        --portal-success: #16a34a;
+        --portal-warning: #d97706;
+        --portal-danger: #dc2626;
+
+        background-color: var(--portal-canvas);
+        color: var(--portal-text);
+        font-family: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .portal-app :focus-visible {
+        outline: 2px solid var(--portal-primary);
+        outline-offset: 2px;
+    }
+
+    .portal-card {
+        border-radius: 18px;
+        border: 1px solid var(--portal-line);
+        background-color: var(--portal-surface);
+        box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -18px rgb(15 23 42 / 0.25);
+    }
+
+    .portal-field {
+        min-height: 48px;
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--portal-line);
+        background-color: #fff;
+        padding-inline: 1rem;
+        font-size: 14px;
+        color: var(--portal-text);
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .portal-field::placeholder {
+        color: #94a3b8;
+    }
+
+    .portal-field:focus {
+        border-color: var(--portal-primary);
+        outline: none;
+        box-shadow: 0 0 0 4px rgb(37 99 235 / 0.12);
+    }
+
+    /* Sembunyikan scrollbar horizontal pada strip navigasi mobile. */
+    .portal-scroll-x {
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none;
+    }
+
+    .portal-scroll-x::-webkit-scrollbar {
+        display: none;
+    }
+
     /* Misc --------------------------------------------------------------- */
     .page-title {
         font-size: 24px;

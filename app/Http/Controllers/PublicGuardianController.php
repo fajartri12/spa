@@ -60,8 +60,9 @@ class PublicGuardianController extends Controller
 
         $request->session()->regenerate();
         session([self::SESSION_KEY => $guardian->getKey()]);
+        $request->session()->forget('url.intended');
 
-        return redirect()->intended('/portal/orang-tua');
+        return redirect('/portal/orang-tua');
     }
 
     public function logout(Request $request): RedirectResponse

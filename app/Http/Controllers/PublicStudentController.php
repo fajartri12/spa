@@ -54,8 +54,9 @@ class PublicStudentController extends Controller
 
         $request->session()->regenerate();
         session([self::SESSION_KEY => $student->id]);
+        $request->session()->forget('url.intended');
 
-        return redirect()->intended('/portal/siswa');
+        return redirect('/portal/siswa');
     }
 
     public function logout(Request $request): RedirectResponse

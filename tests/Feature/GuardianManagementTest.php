@@ -291,6 +291,28 @@ class GuardianManagementTest extends TestCase
         $this->assertNull(app(GuardianService::class)->importFromStudent($student));
     }
 
+    public function test_sync_from_students_creates_guardians_from_parent_data(): void
+    {
+        $student = $this->createStudent('2026209', 'Anak Sinkron');
+        $student->forceFill([
+            'parent_name' => 'Ibu Sinkron',
+            'parent_phone' => '081200003333',
+            'parent_relation' => 'Ibu',
+        ])->save();
+
+        Livewire::actingAs($this->superadmin())
+            ->test(GuardianIndex::class)
+            ->call('syncFromStudents')
+            ->assertDispatched('toast');
+
+        $guardian = Guardian::query()->where('phone', '081200003333')->firstOrFail();
+
+        $this->assertSame('Ibu Sinkron', $guardian->name);
+        $this->assertSame('mother', $guardian->relation->value);
+        $this->assertTrue($guardian->students()->whereKey($student->id)->exists());
+        $this->assertDatabaseHas('activity_logs', ['event' => 'guardians.synced']);
+    }
+
     private function superadmin(): User
     {
         return User::query()->where('email', 'superadmin@email.com')->firstOrFail();

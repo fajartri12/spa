@@ -23,6 +23,16 @@
             @endcan
 
             @can('guardians.create')
+                <x-ui.button
+                    variant="secondary"
+                    wire:click="syncFromStudents"
+                    wire:confirm="Sinkronkan data orang tua dari data siswa? Akun baru akan dibuat dari kolom orang tua pada data siswa."
+                    loading="syncFromStudents"
+                >
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    <span>Sinkronkan dari Data Siswa</span>
+                </x-ui.button>
+
                 <x-ui.button variant="primary" wire:click="create">
                     <i data-lucide="plus" class="w-4 h-4"></i>
                     <span>Tambah Orang Tua</span>

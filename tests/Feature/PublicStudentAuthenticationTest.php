@@ -66,6 +66,21 @@ class PublicStudentAuthenticationTest extends TestCase
         $response->assertSessionHas('public_student_id', $student->id);
     }
 
+    public function test_student_login_ignores_stale_intended_url(): void
+    {
+        $student = $this->createStudentWithPortalPassword();
+
+        session(['url.intended' => '/masuk']);
+
+        $response = $this->post('/portal/authenticate', [
+            'nisn' => '1234567890123456789',
+            'password' => 'per-student-password',
+        ]);
+
+        $response->assertRedirect('/portal/siswa');
+        $this->assertNull(session('url.intended'));
+    }
+
     public function test_invalid_nisn_returns_error(): void
     {
         $response = $this->from('/portal/login')->post('/portal/authenticate', [

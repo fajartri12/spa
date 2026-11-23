@@ -159,6 +159,45 @@ class GuardianIndex extends Component
     }
 
     /**
+     * Sinkronkan data orang tua dari kolom `parent_*` pada data siswa.
+     *
+     * Akun baru dibuat bila nomor HP belum terdaftar, dan siswa otomatis
+     * ditautkan. Nama wali yang sudah ada tidak ditimpa agar koreksi manual
+     * tidak hilang.
+     */
+    public function syncFromStudents(ActivityLogger $logger, GuardianService $guardians): void
+    {
+        $this->authorize('guardians.create');
+
+        $created = 0;
+        $updated = 0;
+
+        $students = Student::query()
+            ->whereNotNull('parent_name')
+            ->whereNotNull('parent_phone')
+            ->where('parent_phone', '!=', '')
+            ->get();
+
+        foreach ($students as $student) {
+            $guardian = $guardians->importFromStudent($student);
+
+            if ($guardian === null) {
+                continue;
+            }
+
+            if ($guardian->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
+            }
+        }
+
+        $logger->log('guardians.synced', 'Menyinkronkan data orang tua dari data siswa');
+
+        $this->dispatch('toast', type: 'success', message: "Sinkronisasi selesai: {$created} akun baru, {$updated} akun diperbarui.");
+    }
+
+    /**
      * Terbitkan password portal baru. Password hanya ditampilkan sekali pada modal.
      */
     public function issuePassword(int $id, ActivityLogger $logger, GuardianService $guardians): void
