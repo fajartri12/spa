@@ -54,6 +54,21 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/) dan
   - Kredensial gateway tetap hanya dari `.env`; driver `fake` ditampilkan dengan peringatan merah dan hanya dapat dipilih bila `PAYMENT_GATEWAY_FAKE_ENABLED=true`.
   - Menu navigasi Pengaturan â†’ Pengaturan Pembayaran (ikon `credit-card`).
 - 11 tes baru: `SettingsManagementTest` (+10 halaman/validasi/overlay), `GatewayDriverTest` (+1 fallback `callback_url` Tripay). Total suite **474 test / 1394 assertion** lulus.
+- **Kartu visual matriks SPP & cetak rekap tahunan PDF.** Wali dan siswa melihat status 12 bulan dalam satu pandangan sehingga mengurangi pertanyaan "bulan mana yang belum bayar":
+  - `SppMatrixService::getMatrix()` menyusun 12 bulan dari tahun ajaran siswa, memetakan `bills.period` (`Y-m`) ke tiap bulan, lalu menandai status `paid | partial | overdue | unpaid | cancelled | no_bill` beserta nominal, terbayar, sisa, dan jatuh tempo plus ringkasan total & progres.
+  - Partial `livewire.public.partials.spp-matrix` menampilkan grid 12 bulan berwarna (hijau lunas, biru sebagian, merah jatuh tempo, kuning belum bayar, abu batal/kosong), bar progres, dan tombol **Cetak Rekap SPP (PDF)**; dipasang di portal siswa maupun portal orang tua.
+  - `SppRecapPdfController` + `reports.spp-recap-pdf` (DomPDF A4) mencetak identitas siswa, tabel 12 bulan, total, dan kolom tanda tangan. Akses: petugas `bills.view`/`reports.export`, sesi siswa pemilik, atau sesi wali dengan anak tertaut; selain itu 403. Route `public.spp-recap` (throttle 30/menit) dan `bills.spp-recap` (tombol **Rekap SPP** di detail tagihan admin).
+- **Kirim ulang kode bayar VA/QRIS ke WhatsApp wali.** Mempercepat pembayaran tanpa menunggu wali membuka portal:
+  - `NotificationService::sendWhatsAppText()` menjadi pembungkus publik untuk pesan bebas (tanpa template) yang tetap tercatat di `notification_logs`; OTP dapat dikirim tanpa menyimpan teksnya.
+  - `PaymentIntentIndex::resendWhatsApp()` (permission `payment-gateways.view`) mengirim nama siswa, judul tagihan, penyedia/kanal, kode bayar/QRIS, nominal, masa berlaku WIB, dan referensi ke nomor wali utama (fallback `students.parent_phone`). Intent yang sudah tidak `open` ditolak; tombol **Kirim WA** tampil per baris pada halaman Tagihan Digital.
+- **Upload bukti transfer manual dari portal untuk verifikasi admin.** Mengakomodasi wali yang tidak memakai Virtual Account:
+  - `ManualTransferService::submit()` membuat pembayaran `pending` + alokasi + `PaymentProof` (disk `local`, `payment-proofs/{id}`), memakai metode `transfer`, menolak tagihan lunas/batal, nominal melebihi sisa, dan bukti ganda yang masih menunggu.
+  - Trait `Public\Concerns\UploadsTransferProof` + modal `transfer-proof-modal` dipakai portal siswa dan wali: tombol **Unggah Bukti Transfer** pada kartu mobile dan tautan pada tabel desktop untuk tagihan yang belum lunas.
+  - Halaman Verifikasi Pembayaran kini menampilkan kolom **Bukti** (jumlah berkas + tautan ke detail) agar petugas memeriksa lampiran sebelum menyetujui/menolak. Uang tetap dianggap masuk hanya setelah disetujui.
+- **Ubah password portal orang tua mandiri via OTP WhatsApp.** Mengurangi beban admin sekolah:
+  - `PublicGuardianPasswordController` menyediakan halaman **Lupa Password** dan **Verifikasi OTP**. OTP 6 angka disimpan sebagai hash di cache (berlaku 5 menit, maksimum 5 percobaan) dan dikirim ke nomor HP terdaftar lewat WhatsApp; respons selalu generik agar keberadaan akun tidak bocor.
+  - Setelah OTP benar, wali menetapkan password baru (minimal 8 karakter, konfirmasi) dan langsung dapat masuk. Throttle 3 permintaan/menit dan 5 verifikasi/menit; tautan **Lupa password?** ditambahkan di halaman masuk portal orang tua.
+- 21 tes baru: `SppRecapTest` (5), `PaymentCodeResendTest` (4), `ManualTransferProofTest` (6), `GuardianPasswordResetTest` (6). Total suite **506 test / 1526 assertion** lulus.
 
 ### Diubah
 - `Payment` mendapat relasi `intent()` dan `reconciliationLines()`; `Student` mendapat `studentBills()`; `StudentBill` mendapat `paymentIntents()`; `StaffProfile` mendapat `payrollItems()`; `Unit` mendapat kolom & cast gateway.
@@ -77,7 +92,8 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/) dan
 
 ### Diperbaiki
 - **GuardianPortal dirender di dalam shell admin.** Atribut #[Layout('layouts.public')] dipakai tanpa use Livewire\Attributes\Layout;, sehingga PHP memperlakukannya sebagai atribut tak dikenal dan Livewire jatuh ke layout default. Sekarang layout publik benar-benar diterapkan.
-- **Error 500 saat berpindah anak di portal wali.** selectStudent() memanggil esetPage() padahal komponen tidak memakai trait WithPagination. Panggilan yang tidak terpakai tersebut dihapus.
+- **Error 500 saat berpindah anak di portal wali.** selectStudent() memanggil 
+esetPage() padahal komponen tidak memakai trait WithPagination. Panggilan yang tidak terpakai tersebut dihapus.
 
 ### Pengujian
 - 43 tes baru: GuardianPortalTest (16), PortalReceiptTest (7), GuardianManagementTest (15), PortalSeparationTest (5). Total suite: **390 passed / 1156 assertions**.

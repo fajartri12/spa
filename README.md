@@ -37,7 +37,14 @@ orang tua/wali.
 | 7 | System Tools — notifikasi, backup, log, info server | ✅ Selesai |
 | 8 | Finalization — optimasi, security review, deployment | ✅ Selesai |
 
-Suite pengujian: **191 test lulus, 527 assertion**.
+Suite pengujian: **506 test lulus, 1526 assertion**.
+
+Peningkatan portal publik terbaru:
+
+- **Kartu SPP tahunan** — matriks visual 12 bulan + cetak rekap PDF (portal siswa & wali, admin).
+- **Kirim ulang kode bayar** — VA/QRIS dikirim ke WhatsApp wali dari halaman Tagihan Digital.
+- **Bukti transfer manual** — wali/siswa mengunggah bukti, admin melihat kolom *Bukti* saat verifikasi.
+- **Lupa password** — ubah password portal orang tua via OTP WhatsApp, tanpa bantuan admin.
 
 Rincian lengkap: [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)
 
