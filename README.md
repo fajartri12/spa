@@ -52,7 +52,7 @@ Rincian lengkap: [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)
 
 ## Modul Tersedia
 
-### Master Data (`/data-master/*`)
+### Master Data (`/admin/data-master/*`)
 
 | Halaman | Route | Keterangan |
 |---|---|---|
@@ -99,7 +99,7 @@ Rincian lengkap: [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)
 | Backup Database | `backups.index` | Buat & pulihkan cadangan |
 | Informasi Server | `server-info.index` | Runtime & pembersihan cache |
 
-### Pengaturan (`/pengaturan/*`)
+### Pengaturan (`/admin/pengaturan/*`)
 
 | Halaman | Route | Keterangan |
 |---|---|---|

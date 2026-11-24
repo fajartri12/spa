@@ -71,6 +71,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/) dan
 - 21 tes baru: `SppRecapTest` (5), `PaymentCodeResendTest` (4), `ManualTransferProofTest` (6), `GuardianPasswordResetTest` (6). Total suite **506 test / 1526 assertion** lulus.
 
 ### Diubah
+- **Seluruh halaman admin kini berprefix `/admin`.** Dashboard berpindah dari `/dashboard` ke `/admin/dashboard`, login admin dari `/masuk` ke `/admin/masuk`, dan setiap modul mengikuti prefix yang sama (`/admin/pembayaran`, `/admin/tagihan`, `/admin/laporan`, `/admin/data-master/*`, `/admin/pengaturan/*`, dst). Nama route tidak berubah sehingga `route('...')` di navigasi, Livewire, dan blade tetap bekerja. `/` dan `/beranda` dialihkan ke `/admin/dashboard`, `/masuk` dialihkan ke `/admin/masuk`. Halaman publik (`/ppdb/*`, `/portal/*`, `/webhook/pembayaran/*`) tetap di luar prefix.
 - `Payment` mendapat relasi `intent()` dan `reconciliationLines()`; `Student` mendapat `studentBills()`; `StudentBill` mendapat `paymentIntents()`; `StaffProfile` mendapat `payrollItems()`; `Unit` mendapat kolom & cast gateway.
 - `bootstrap/app.php` mengecualikan `webhook/pembayaran/*` dari verifikasi CSRF.
 

@@ -82,10 +82,13 @@ use App\Livewire\Tools\ServerInfoIndex;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/beranda');
+Route::redirect('/', '/admin/dashboard');
+Route::redirect('/beranda', '/admin/dashboard');
 Route::redirect('/PPDB', '/ppdb');
 
-Route::middleware('guest')->group(function (): void {
+Route::redirect('/masuk', '/admin/masuk');
+
+Route::prefix('admin')->middleware('guest')->group(function (): void {
     Route::get('/masuk', Login::class)->name('login');
 });
 
@@ -155,8 +158,8 @@ Route::post('/webhook/pembayaran/{provider}', PaymentWebhookController::class)
     ->middleware('throttle:120,1')
     ->name('webhooks.payment');
 
-Route::middleware(['auth', 'active'])->group(function (): void {
-    Route::get('/beranda', DashboardIndex::class)
+Route::prefix('admin')->middleware(['auth', 'active'])->group(function (): void {
+    Route::get('/dashboard', DashboardIndex::class)
         ->middleware('permission:dashboard.view')
         ->name('dashboard');
 

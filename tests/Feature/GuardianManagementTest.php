@@ -35,13 +35,13 @@ class GuardianManagementTest extends TestCase
             'status' => 'active',
         ]);
 
-        $this->actingAs($user)->get('/data-master/orang-tua')->assertForbidden();
+        $this->actingAs($user)->get(route('guardians.index'))->assertForbidden();
     }
 
     public function test_authorized_user_can_view_page(): void
     {
         $this->actingAs($this->superadmin())
-            ->get('/data-master/orang-tua')
+            ->get(route('guardians.index'))
             ->assertOk()
             ->assertSee('Orang Tua / Wali');
     }
@@ -237,7 +237,7 @@ class GuardianManagementTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->superadmin())
-            ->get('/data-master/orang-tua/export');
+            ->get(route('guardians.export'));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
@@ -257,7 +257,7 @@ class GuardianManagementTest extends TestCase
             'status' => 'active',
         ]);
 
-        $this->actingAs($user)->get('/data-master/orang-tua/export')->assertForbidden();
+        $this->actingAs($user)->get(route('guardians.export'))->assertForbidden();
     }
 
     public function test_guardian_permissions_are_registered(): void

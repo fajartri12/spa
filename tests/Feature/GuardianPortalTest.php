@@ -75,7 +75,7 @@ class GuardianPortalTest extends TestCase
     {
         $guardian = $this->createGuardian();
 
-        session(['url.intended' => '/masuk']);
+        session(['url.intended' => '/admin/masuk']);
 
         $response = $this->post('/portal/orang-tua/authenticate', [
             'phone' => $guardian->phone,

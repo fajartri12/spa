@@ -70,7 +70,7 @@ class PublicStudentAuthenticationTest extends TestCase
     {
         $student = $this->createStudentWithPortalPassword();
 
-        session(['url.intended' => '/masuk']);
+        session(['url.intended' => '/admin/masuk']);
 
         $response = $this->post('/portal/authenticate', [
             'nisn' => '1234567890123456789',
